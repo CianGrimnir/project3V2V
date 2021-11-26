@@ -22,19 +22,13 @@ def peer_list_updater(BPORT):
     client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     client.bind(("", 33341))
     index = 1
-    print(pair_list)
-    print([(pair_list[i].host, pair_list[i].port) for i in pair_list])
     while True:
         data = client.recvfrom(1024)
-        print(data)
         decoded_data = json.loads(data[0].decode('utf-8'))
         print(decoded_data)
-        print(f'testing pair -  {[(pair_list[key].host, pair_list[key].port) for key in list(pair_list)]}')
         flag = [decoded_data['host'] == pair_list[key].host and decoded_data['port'] == pair_list[key].port for key in
                 list(pair_list)]
-        print(flag)
         if any(flag):
-            print('already exist')
             pass
         else:
             pair_list[index] = HostConfigure(decoded_data['host'], decoded_data['port'])
@@ -56,7 +50,7 @@ def information_listener(host, LPORT):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(host, LPORT)
     server.bind((host, LPORT))
-    # server.setblocking(False)
+    #server.setblocking(False)
     server.listen(5)
     while True:
         conn, addr = server.accept()
@@ -67,19 +61,23 @@ def information_listener(host, LPORT):
             print(f'received data : {decoded_data} from {addr}')
         except Exception as e:
             pass
-            # print(f'error receiving {e} {addr}')
+            #print(f'error receiving {e} {addr}')
 
 
 def send_information():
     while True:
-        for peer in pair_list.keys():
+        for peer in list(pair_list):
             peerHost = pair_list[peer].host
             peerPort = int(pair_list[peer].port)
             if host == peerHost and args.listen_port == peerPort:
                 continue
-            peer = Sensor()
-            message = "sample"
-            peer.send_messages(peerHost, peerPort, message)
+            node = Sensor()
+            print("sending ...",peerHost, peerPort)
+            message = f"sample {host} {args.listen_port}"
+            flag = node.send_messages(peerHost, peerPort, message)
+            if not flag and len(pair_list) > 1:
+                print(f'key {peer}')
+                pop = pair_list.pop(peer)
         time.sleep(5)
 
 
