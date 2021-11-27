@@ -1,3 +1,4 @@
+# Author : Omkar
 # generate random integer values
 from random import seed
 from random import randint
@@ -138,26 +139,26 @@ class FuelSensor():
         if(self.FUEL >100):
             self.FUEL = 100
 
-class Sensor:
-    def GetSensors(self):
-        p1 = PressureSensor()
-        s1 = SpeedSensor()
-        l1 = LightSensor()
-        f1 = FuelSensor()
+class Sensors:
+    def getSensors(self):
+        self.pressureSensor = PressureSensor()
+        self.speedSensor = SpeedSensor()
+        self.lightSensor = LightSensor()
+        self.fuelSensor = FuelSensor()
 
         sensorObjects = []
-        sensorObjects.append(p1)
-        sensorObjects.append(s1)
-        sensorObjects.append(l1)
-        sensorObjects.append(f1)
+        sensorObjects.append(self.pressureSensor)
+        sensorObjects.append(self.speedSensor)
+        sensorObjects.append(self.lightSensor)
+        sensorObjects.append(self.fuelSensor)
 
         return sensorObjects
 
 def GET_SENSOR_DATA():
 
 
-    S = Sensor()
-    Sobj = S.GetSensors()
+    S = Sensors()
+    Sobj = S.getSensors()
 
     for s in Sobj:
         print(s.GET_DATA())
@@ -190,5 +191,5 @@ def GET_SENSOR_DATA():
         print("FUEL: "+str(FUEL[1]))
 
 
-GET_SENSOR_DATA()
+#GET_SENSOR_DATA()
 

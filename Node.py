@@ -35,43 +35,22 @@ if .....
 # Azin
 import logging
 import argparse
-from os import posix_fallocate
 import time
 import threading
 import random
+import sensor_data_generators as sdg
 
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--nodeid', help='a number', required=True)
 node_id = args_parser.parse_args().nodeid
 
-def get_data_from_speed():
-    return ['SPD', 1]
-def get_data_from_tyre_pressure():
-    return ['TP', 0]
-def get_data_from_lane_change_sensor():
-    return ['SWL', 0]
-def get_data_from_proximity():
-    return ['PRX', 0]
-def get_data_from_GPS():
-    return ['GPS', 0]
-def get_data_from_BP_sensor() :
-    return ['BPS', 0]
-def get_data_from_brake():
-    return ['BRK', 0]
-def get_data_from_fuel_gauge() :
-    return ['FLG', 0]
-
-
-
-sensor_data_generator = [get_data_from_speed, get_data_from_tyre_pressure, get_data_from_lane_change_sensor, get_data_from_proximity,
-    get_data_from_GPS, get_data_from_BP_sensor, get_data_from_brake, get_data_from_fuel_gauge]
 
 def send_broadcast(data) :
     logging.info("Broadcasting")
 
 
-class VehicleControl:
+class VehicleControls:
     def __init__( self ):
         self.lane = random.choices([0,1])
         self.speed = 0
@@ -82,13 +61,14 @@ class VehicleControl:
         self.fuel = 0
         self.brake = 0
         self.position = 0
-        self.sensors = sensor_data_generator #[""" list of sensor objects"""]
+        sensorMaster = sdg.Sensors()
+        self.sensors= sensorMaster.getSensors() #[""" list of sensor objects"""]
 
     def runVehicle( self) :
         while True :
             for sensor in self.sensors :
-                #data = sensor.get_data()
-                data = sensor()
+                data = sensor.GET_DATA()
+                #data = sensor()
                 if data[0] == 'SPD' :
                     self.process_speed_data(data)
                 elif data[0] == 'TP' :
@@ -159,7 +139,8 @@ class VehicleControl:
         
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=v.runVehicle, args=( ))
-v = VehicleControl()
+        
+v = VehicleControls()
 
 runner = v.get_vehicle_runner_thread()
 
