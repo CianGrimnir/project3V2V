@@ -42,16 +42,17 @@ import sensor_data_generators as sdg
 
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()
-args_parser.add_argument('--nodeid', help='a number', required=True)
-node_id = args_parser.parse_args().nodeid
-
+args_parser.add_argument('--nodeid', help='a number', required=False)
+vechile_id = args_parser.parse_args().nodeid
+#vechile_id = 1245
 
 def send_broadcast(data) :
     logging.info("Broadcasting")
 
 
 class VehicleControls:
-    def __init__( self ):
+    def __init__( self, vechile_id ):
+        self.vechile_id = vechile_id
         self.lane = random.choices([0,1])
         self.speed = 0
         self.tyrePressure = 0
@@ -90,57 +91,57 @@ class VehicleControls:
     def process_fuel_guage_data(self, data):
         self.fuel = data[1]
         if data[1] < 15 :
-            logging.info("["+ node_id +"] Broadcasting low fuel alert")
-            send_broadcast("["+ node_id +"] low fuel alert")
+            logging.info("["+ self.vechile_id +"] Broadcasting low fuel alert")
+            send_broadcast("["+ self.vechile_id +"] low fuel alert")
 
     def process_brake_sensor_data(self, data):
         self.brake = data[1]
         if data[1] < 100 :
-            logging.info("["+ node_id +"] Broadcasting stopping alert")
-            send_broadcast("["+ node_id +"] stopping alert")
+            logging.info("["+ self.vechile_id +"] Broadcasting stopping alert")
+            send_broadcast("["+ self.vechile_id +"] stopping alert")
 
     def process_BP_data(self, data):
         self.BP = data[1]
         if data[1] < 100 :
-            logging.info("["+ node_id +"] Broadcasting passenger in danger alert")
-            send_broadcast("["+ node_id +"] No BP alert")
+            logging.info("["+ self.vechile_id +"] Broadcasting passenger in danger alert")
+            send_broadcast("["+ self.vechile_id +"] No BP alert")
 
     def process_gps_data(self, data):
         self.GPS = data[1]
         if data[1] < 100 :
-            logging.info("["+ node_id+ "] Broadcasting low signal alert")
-            send_broadcast("["+ node_id +"] low GPS signal alert")
+            logging.info("["+ self.vechile_id+ "] Broadcasting low signal alert")
+            send_broadcast("["+ self.vechile_id +"] low GPS signal alert")
 
     def process_proximity_data(self, data):
         self.proximity = data[1]
         if data[1] > 100 :
-            logging.info("["+ node_id +"] Broadcasting proximity alert")
-            send_broadcast("["+ node_id +"] proximity alert")
+            logging.info("["+ self.vechile_id +"] Broadcasting proximity alert")
+            send_broadcast("["+ self.vechile_id +"] proximity alert")
 
     def process_lane_switch_data(self, data):
         if data[1] != self.lane :
             self.lane = data[1]
-            logging.info("["+ node_id +"] Broadcasting direction changing alert")
-            send_broadcast("["+ node_id +"] changing direction")
+            logging.info("["+ self.vechile_id +"] Broadcasting direction changing alert")
+            send_broadcast("["+ self.vechile_id +"] changing direction")
 
     def process_tyre_pressure_data(self, data):
         self.tyrePressure = + data[1]
         if data[1] > 100 :
-            logging.info("["+ node_id +"] Broadcasting tyre pressure low alert")
-            send_broadcast("["+ node_id +"] Typre pressure is low")
+            logging.info("["+ self.vechile_id +"] Broadcasting tyre pressure low alert")
+            send_broadcast("["+ self.vechile_id +"] Typre pressure is low")
 
     def process_speed_data(self, data):
         self.position = self.position + data[1]
         self.speed = data[1]
         print( "position = " + str(v.position))
         if data[1] > 60 :
-            logging.info("["+ node_id+ "] Broadcasting overspeeding alert")
-            send_broadcast("["+ node_id +"] is overspeeding")
+            logging.info("["+ self.vechile_id+ "] Broadcasting overspeeding alert")
+            send_broadcast("["+ self.vechile_id +"] is overspeeding")
         
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=v.runVehicle, args=( ))
 
-v = VehicleControls()
+v = VehicleControls(vechile_id)
 
 runner = v.get_vehicle_runner_thread()
 
