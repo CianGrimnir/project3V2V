@@ -8,7 +8,7 @@ from sensor import Sensor
 
 broadcast_port = 33341
 pair_list = {}
-
+index = 1
 
 class HostConfigure:
     def __init__(self, hostaddress, port):
@@ -21,7 +21,7 @@ def peer_list_updater(BPORT):
     client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     client.bind(("", 33341))
-    index = 1
+    global index
     while True:
         data = client.recvfrom(1024)
         decoded_data = json.loads(data[0].decode('utf-8'))
@@ -79,7 +79,17 @@ def send_information(selfaddress):
             if not flag and len(pair_list) > 1:
                 print(f'key {peer}')
                 pop = pair_list.pop(peer)
+                reorder_pairlist()
         time.sleep(5)
+
+
+def reorder_pairlist():
+    keys = list(pair_list.keys())
+    temp = {}
+    global index
+    for i in range(len(pair_list)):
+        temp[i] = pair_list[keys[i]]
+    index = len(pair_list)
 
 
 my_parser = argparse.ArgumentParser(description='command to execute the ./server script')
