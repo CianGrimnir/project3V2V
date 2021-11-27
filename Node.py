@@ -157,9 +157,10 @@ class vehicle:
             logging.info("["+ node_id+ "] Broadcasting overspeeding alert")
             send_broadcast("["+ node_id +"] is overspeeding")
         
-
+    def get_vehicle_runner_thread( self) :
+        return threading.Thread(target=v.runVehicle, args=( ))
 v = vehicle()
 
-runner = threading.Thread(target=v.runVehicle, args=( ))
+runner = v.get_vehicle_runner_thread()
 
 runner.start()
