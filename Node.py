@@ -71,7 +71,7 @@ def send_broadcast(data) :
     logging.info("Broadcasting")
 
 
-class vehicle:
+class VehicleControl:
     def __init__( self ):
         self.lane = random.choices([0,1])
         self.speed = 0
@@ -159,7 +159,7 @@ class vehicle:
         
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=v.runVehicle, args=( ))
-v = vehicle()
+v = VehicleControl()
 
 runner = v.get_vehicle_runner_thread()
 
