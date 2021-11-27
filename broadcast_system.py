@@ -64,17 +64,18 @@ def information_listener(host, LPORT):
             #print(f'error receiving {e} {addr}')
 
 
-def send_information():
+def send_information(selfaddress):
     while True:
         for peer in list(pair_list):
             peerHost = pair_list[peer].host
             peerPort = int(pair_list[peer].port)
-            if host == peerHost and args.listen_port == peerPort:
+            if host == selfaddress.host and selfaddress.port == peerPort:
                 continue
             node = Sensor()
             print("sending ...",peerHost, peerPort)
             message = f"sample {host} {args.listen_port}"
             flag = node.send_messages(peerHost, peerPort, message)
+            print(f'data send status : {flag}')
             if not flag and len(pair_list) > 1:
                 print(f'key {peer}')
                 pop = pair_list.pop(peer)
@@ -86,11 +87,12 @@ my_parser.add_argument('--listen_port', help='listening_port', required=True)
 args = my_parser.parse_args()
 hostname = socket.gethostname()
 host = socket.gethostbyname(hostname)
+selfinfo = HostConfigure(host, int(args.listen_port))
 pair_list[0] = HostConfigure(host, args.listen_port)
 serverThread = threading.Thread(target=server_side, args=(host, broadcast_port, args.listen_port,))
 peerThread = threading.Thread(target=peer_list_updater, args=(broadcast_port,))
 infoThread = threading.Thread(target=information_listener, args=(host, int(args.listen_port),))
-sensorThread = threading.Thread(target=send_information)
+sensorThread = threading.Thread(target=send_information, args = (selfinfo,))
 
 serverThread.start()
 peerThread.start()

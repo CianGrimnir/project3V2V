@@ -14,6 +14,8 @@ class Sensor:
         self.sock.connect_ex(server_address)
         try:
             self.sock.send(data.encode('utf-8'))
+            self.sock.close()
+            return flag
         except Exception as e:
             print(f'{e} {server_address}')
             return False
