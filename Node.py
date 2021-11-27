@@ -89,7 +89,7 @@ class VehicleControls:
 
     def process_fuel_guage_data(self, data):
         self.fuel = data[1]
-        if data[1] < 100 :
+        if data[1] < 15 :
             logging.info("["+ node_id +"] Broadcasting low fuel alert")
             send_broadcast("["+ node_id +"] low fuel alert")
 
@@ -139,7 +139,7 @@ class VehicleControls:
         
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=v.runVehicle, args=( ))
-        
+
 v = VehicleControls()
 
 runner = v.get_vehicle_runner_thread()
