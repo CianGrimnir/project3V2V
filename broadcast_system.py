@@ -53,10 +53,11 @@ def server_side(host, BPORT, LPORT):
 
 def information_listener(host, LPORT):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     print(host, LPORT)
     server.bind((host, LPORT))
-    #server.setblocking(False)
-    server.listen(5)
+    server.listen(32)
+    # server.setblocking(False)     will try in selectors
     while True:
         conn, addr = server.accept()
         conn.setblocking(False)
@@ -67,10 +68,12 @@ def information_listener(host, LPORT):
         except Exception as e:
             pass
             #print(f'error receiving {e} {addr}')
+        conn.close()
 
 
 def send_information(selfaddress, sending_port):
     while True:
+        time.sleep(2)
         for peer in list(pair_list):
             peerHost = pair_list[peer].host
             peerPort = int(pair_list[peer].port)
@@ -118,6 +121,8 @@ sensorThread = threading.Thread(target=send_information, args = (selfinfo,int(ar
 
 serverThread.start()
 peerThread.start()
+
 time.sleep(5)
 infoThread.start()
+
 sensorThread.start()

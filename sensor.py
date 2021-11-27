@@ -13,7 +13,7 @@ class Sensor:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setblocking(False)
         print(host, send_port)
-        #self.sock.bind((host, send_port))
+        self.sock.bind((host, send_port))
         self.sock.connect_ex(server_address)
         try:
             self.sock.send(data.encode('utf-8'))
