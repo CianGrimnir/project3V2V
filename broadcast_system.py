@@ -21,7 +21,6 @@ class BroadcastSystem(HostConfigure):
         super(BroadcastSystem, self).__init__(host_address, port)
         self.pair_list = {}
         self.broadcast_port = 33341
-        self.index = 1
         self.lock = threading.Lock()
 
     def peer_list_updater(self):
@@ -33,18 +32,18 @@ class BroadcastSystem(HostConfigure):
             data = client.recvfrom(1024)
             decoded_data = json.loads(data[0].decode('utf-8'))
             print(decoded_data)
-            flag = [
-                decoded_data['host'] == self.pair_list[key].host and decoded_data['port'] == self.pair_list[key].port
-                for key
-                in
-                list(self.pair_list)]
+            peer_host = decoded_data['host']
+            peer_port = int(decoded_data['port'])
+            flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in list(self.pair_list)]
+            print(f'flag {flag}')
             if any(flag):
                 pass
             else:
                 self.lock.acquire()
-                self.pair_list[self.index] = HostConfigure(decoded_data['host'], decoded_data['port'])
+                index = peer_host + str(peer_port)
+                self.pair_list[index] = HostConfigure(peer_host, peer_port)
+                print(f'index - {index} {self.pair_list[index]}')
                 self.lock.release()
-                self.index += 1
             print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
 
     def server_side(self):
@@ -59,7 +58,6 @@ class BroadcastSystem(HostConfigure):
     def information_listener(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print(self.host, self.port)
         server.bind((self.host, self.port))
         server.listen(32)
         # server.setblocking(False)     will try in selectors
@@ -78,6 +76,7 @@ class BroadcastSystem(HostConfigure):
     def send_information(self, sending_port):
         while True:
             time.sleep(2)
+            delNode = []
             for peer in list(self.pair_list):
                 peer_host = self.pair_list[peer].host
                 peer_port = int(self.pair_list[peer].port)
@@ -90,24 +89,18 @@ class BroadcastSystem(HostConfigure):
                 print(f'data send status : {flag}')
                 if not flag and len(self.pair_list) > 1:
                     print(f'key {peer}')
-                    pop = self.pair_list.pop(peer)
-                    self.lock.acquire()
-                    print("calling reordering........")
-                    self.reorder_pairlist()
-                    self.lock.release()
+                    delNode.append(peer)
+            self.reorder_pairlist(delNode)
+            delNode.clear()
             time.sleep(7)
 
-    def reorder_pairlist(self):
-        print("----------------------------")
-        keys = list(self.pair_list.keys())
-        print(keys)
-        temp = {}
+    def reorder_pairlist(self, delete_node):
+        print(f'KEYS ---- {delete_node}')
         self.lock.acquire()
-        for i in range(len(self.pair_list)):
-            temp[i] = self.pair_list[keys[i]]
+        for node in delete_node:
+            pop = self.pair_list.pop(node)
+            print(f'popped index {node} {pop}')
         self.lock.release()
-        self.index = len(self.pair_list)
-        print(f'printing index ----- {self.index}\n printing pair_list')
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
 
 
