@@ -16,9 +16,9 @@ class HostConfigure:
         self.port = port
 
 
-class Vehicle(HostConfigure):
+class BroadcastSystem(HostConfigure):
     def __init__(self, host_address, port):
-        super(Vehicle, self).__init__(host_address, port)
+        super(BroadcastSystem, self).__init__(host_address, port)
         self.pair_list = {}
         self.broadcast_port = 33341
         self.index = 1
@@ -118,7 +118,7 @@ def main():
     args = my_parser.parse_args()
     hostname = socket.gethostname()
     host = socket.gethostbyname(hostname)
-    get_vehicle = Vehicle(host, int(args.listen_port))
+    get_vehicle = BroadcastSystem(host, int(args.listen_port))
 
     server_thread = threading.Thread(target=get_vehicle.server_side)
     peer_thread = threading.Thread(target=get_vehicle.peer_list_updater)
