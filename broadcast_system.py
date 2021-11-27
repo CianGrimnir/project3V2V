@@ -9,6 +9,9 @@ from sensor import Sensor
 broadcast_port = 33341
 pair_list = {}
 index = 1
+#lock = threading.RLock()
+lock = threading.Lock()
+
 
 class HostConfigure:
     def __init__(self, hostaddress, port):
@@ -31,7 +34,9 @@ def peer_list_updater(BPORT):
         if any(flag):
             pass
         else:
+            lock.acquire()
             pair_list[index] = HostConfigure(decoded_data['host'], decoded_data['port'])
+            lock.release()
             index += 1
         print([(pair_list[i].host, pair_list[i].port) for i in pair_list])
 
@@ -64,7 +69,7 @@ def information_listener(host, LPORT):
             #print(f'error receiving {e} {addr}')
 
 
-def send_information(selfaddress):
+def send_information(selfaddress, sending_port):
     while True:
         for peer in list(pair_list):
             peerHost = pair_list[peer].host
@@ -74,26 +79,33 @@ def send_information(selfaddress):
             node = Sensor()
             print("sending ...",peerHost, peerPort)
             message = f"sample {host} {args.listen_port}"
-            flag = node.send_messages(peerHost, peerPort, message)
+            flag = node.send_messages(peerHost, peerPort, sending_port, message)
             print(f'data send status : {flag}')
             if not flag and len(pair_list) > 1:
                 print(f'key {peer}')
                 pop = pair_list.pop(peer)
+                lock.acquire()
                 reorder_pairlist()
-        time.sleep(5)
+                lock.release()
+        time.sleep(7)
 
 
 def reorder_pairlist():
     keys = list(pair_list.keys())
+    print(keys)
     temp = {}
     global index
+    lock.acquire()
     for i in range(len(pair_list)):
         temp[i] = pair_list[keys[i]]
+    lock.release()
     index = len(pair_list)
+    print(pair_list, index)
 
 
 my_parser = argparse.ArgumentParser(description='command to execute the ./server script')
 my_parser.add_argument('--listen_port', help='listening_port', required=True)
+my_parser.add_argument('--sending_port', help='sending_port', required=True)
 args = my_parser.parse_args()
 hostname = socket.gethostname()
 host = socket.gethostbyname(hostname)
@@ -102,12 +114,10 @@ pair_list[0] = HostConfigure(host, args.listen_port)
 serverThread = threading.Thread(target=server_side, args=(host, broadcast_port, args.listen_port,))
 peerThread = threading.Thread(target=peer_list_updater, args=(broadcast_port,))
 infoThread = threading.Thread(target=information_listener, args=(host, int(args.listen_port),))
-sensorThread = threading.Thread(target=send_information, args = (selfinfo,))
+sensorThread = threading.Thread(target=send_information, args = (selfinfo,int(args.sending_port,)))
 
 serverThread.start()
 peerThread.start()
-
 time.sleep(5)
 infoThread.start()
-
 sensorThread.start()
