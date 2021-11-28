@@ -5,8 +5,11 @@ import threading
 import time
 
 class Vehicle( ctrl.VehicleControls) :
-    def __init__(self, vehicle_id, host_address, port):
-        super().__init__(vehicle_id, host_address, port)
+    def __init__(self, vehicle_id, host_address, listening_port):
+        super().__init__(vehicle_id, host_address, listening_port)
+    
+    def deploy(self, sending_port):
+        return super().deploy(sending_port)
         
     
 def Main() :
@@ -18,19 +21,7 @@ def Main() :
     host = socket.gethostbyname(hostname)
     get_vehicle = Vehicle( 123, host, int(args.listen_port))
 
-    server_thread = threading.Thread(target=get_vehicle.server_side)
-    peer_thread = threading.Thread(target=get_vehicle.peer_list_updater)
-    info_thread = threading.Thread(target=get_vehicle.information_listener)
-    sensor_thread = threading.Thread(target=get_vehicle.send_information, args=(args.sending_port,))
-
-    server_thread.start()
-    peer_thread.start()
-
-    time.sleep(5)
-    info_thread.start()
-
-    sensor_thread.start()
-
+    get_vehicle.deploy(args.sending_port)
 
 if __name__ == '__main__':
     Main()
