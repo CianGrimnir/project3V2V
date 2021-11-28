@@ -59,7 +59,7 @@ class BroadcastSystem(HostConfigure):
             server.sendto(encode_data, ('<broadcast>', self.broadcast_port))
             time.sleep(5)
 
-    def information_listener(self):
+    def information_listener(self, handler):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((self.host, self.port))
@@ -72,6 +72,7 @@ class BroadcastSystem(HostConfigure):
                 recv_data = conn.recv(1024)
                 decoded_data = recv_data.decode('utf-8')
                 print(f'received data : {decoded_data} from {addr}')
+                handler()
             except Exception as e:
                 pass
                 # print(f'error receiving {e} {addr}')
@@ -122,11 +123,11 @@ class BroadcastSystem(HostConfigure):
             self.sock.close()
             return False
 
-    def deploy(self):
+    def deploy(self, handler):
 
         server_thread = threading.Thread(target=self.server_side)
         peer_thread = threading.Thread(target=self.peer_list_updater)
-        info_thread = threading.Thread(target=self.information_listener)
+        info_thread = threading.Thread(target=self.information_listener, args = ( handler, ))
         #sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
 
         server_thread.start()

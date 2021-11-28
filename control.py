@@ -52,15 +52,20 @@ def send_broadcast___dummy( data) :
     pass
 
 
-class infraNode( bs.BroadcastSystem) :
-    '''
-        Possible scenerios :
-            1. ?
-            2. 
-    '''
-    pass
 
 FUEL_LIMIT = 80
+class InfraControls( bs.BroadcastSystem) :
+    def __init__( self, vehicle_id, host_address, listening_port, sending_port ):
+        super().__init__(host_address, listening_port, sending_port)
+        self.sensors = """ list of sensors for infra--->  weather, """
+    
+    def runInfra() :
+        pass
+
+    def deploy(self):
+        return super().deploy(self.information_listener)
+    
+        
 
 class VehicleControls( bs.BroadcastSystem):
     def __init__( self, vehicle_id, host_address, listening_port, sending_port ):
@@ -132,7 +137,7 @@ class VehicleControls( bs.BroadcastSystem):
 
     def process_light_sensor_data(self, data):
         if data[1] == "LOW":
-            logging.info(f'[ {self.vechile_id}] Broadcasting direction changing alert')
+            logging.info(f'[ {self.vechile_id}] Broadcasting low lights alert')
             self.send_information("{'vehicleId': '"+ str(self.vechile_id) +"', ''alert' : 'Low lights alert', 'senorId' : 'LT', 'senorReading' : "+ str(data[1])+"}")
 
     def process_tyre_pressure_data(self, data):
@@ -151,9 +156,12 @@ class VehicleControls( bs.BroadcastSystem):
         
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=self.runVehicle, args=( ))
+
+    def information_processor() :
+        pass
     
     def deploy(self):
-        super().deploy()
+        super().deploy(self.information_listener)
         self.get_vehicle_runner_thread().start()
     
 
