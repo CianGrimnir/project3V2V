@@ -62,6 +62,7 @@ class InfraControls( bs.BroadcastSystem) :
         """Wat to do with the received data ? """
         print("On infra--->["+data+"]")
 
+    #Thread to push periodic updates to all connected nodes
     def periodic_updater(self) :
         while True :
             self.send_information("{'infraNodeId': '"+ str(self.nodeId) +"', ''alert' : 'Weather alert', 'senorId' : 'WTR', 'senorReading' : dummy_readings}")
