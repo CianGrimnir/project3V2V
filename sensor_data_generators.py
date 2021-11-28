@@ -165,14 +165,16 @@ class ProximitySensor:
         if(randvalue3>=67):
             self.PROXIMITY_BEHIND = (not self.PROXIMITY_BEHIND)
 
-        if(FLAG=='LEFT'):
-            return ['PRX',self.PROXIMITY_LEFT]
-        if(FLAG=='RIGHT'):
-            return ['PRX',self.PROXIMITY_RIGHT]
-        if(FLAG=='FRONT'):
-            return ['PRX',self.PROXIMITY_FRONT]
-        if(FLAG=='BEHIND'):
-            return ['PRX',self.PROXIMITY_BEHIND]
+
+        return ['PRX',self.PROXIMITY_LEFT,self.PROXIMITY_RIGHT,self.PROXIMITY_FRONT,self.PROXIMITY_BEHIND]
+        # if(FLAG=='LEFT'):
+        #     return ['PRX',self.PROXIMITY_LEFT]
+        # if(FLAG=='RIGHT'):
+        #     return ['PRX',self.PROXIMITY_RIGHT]
+        # if(FLAG=='FRONT'):
+        #     return ['PRX',self.PROXIMITY_FRONT]
+        # if(FLAG=='BEHIND'):
+        #     return ['PRX',self.PROXIMITY_BEHIND]
 
 class BrakeSensor:
 
