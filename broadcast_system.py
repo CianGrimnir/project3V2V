@@ -4,7 +4,7 @@ import socket
 import threading
 import time
 
-from sensor import Sensor
+from communications import p2p
 
 
 # lock = threading.RLock()
@@ -30,6 +30,7 @@ class BroadcastSystem(HostConfigure):
         client.bind(("", self.broadcast_port))
         while True:
             data = client.recvfrom(1024)
+           
             decoded_data = json.loads(data[0].decode('utf-8'))
             print(decoded_data)
             peer_host = decoded_data['host']
@@ -82,7 +83,7 @@ class BroadcastSystem(HostConfigure):
                 peer_port = int(self.pair_list[peer].port)
                 if self.host == peer_host and self.port == peer_port:
                     continue
-                node = Sensor()
+                node = p2p()
                 print("sending ...", peer_host, peer_port)
                 message = f"sample {self.host} {self.port}"
                 flag = node.send_messages(peer_host, peer_port, int(sending_port), message)

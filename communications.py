@@ -1,6 +1,7 @@
 import socket
 
-class Sensor:
+# Suggest a better name for this class.
+class p2p:
     def __init__(self):
         self.speed = 0
         self.proximity = 0

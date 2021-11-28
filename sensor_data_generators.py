@@ -230,27 +230,30 @@ class GPSSensor:
 
         return ['GPS', "("+str(self.INITIAL_LAT)+","+str(self.INITIAL_LONG)+")"]
 
+# Changing the name to sensors, as it makes more sense
+class Sensors:
 
-class Sensor:
-    def GetSensors(self):
-        p1 = PressureSensor()
-        s1 = SpeedSensor()
-        l1 = LightSensor()
-        f1 = FuelSensor()
-        px1 = ProximitySensor()
-        b1 = BrakeSensor()
-        hrs = HeartRateSensor()
-        gps = GPSSensor()
+    #making the sensors instance variables as it 
+    #gives as control over the sensor objects usings the object of Sensors
+    def getSensors(self):
+        self.p1 = PressureSensor()
+        self.s1 = SpeedSensor()
+        self.l1 = LightSensor()
+        self.f1 = FuelSensor()
+        self.px1 = ProximitySensor()
+        self.b1 = BrakeSensor()
+        self.hrs = HeartRateSensor()
+        self.gps = GPSSensor()
 
         sensorObjects = []
-        sensorObjects.append(p1)
-        sensorObjects.append(s1)
-        sensorObjects.append(l1)
-        sensorObjects.append(f1)
-        sensorObjects.append(px1)
-        sensorObjects.append(b1)
-        sensorObjects.append(hrs)
-        sensorObjects.append(gps)
+        sensorObjects.append(self.p1)
+        sensorObjects.append(self.s1)
+        sensorObjects.append(self.l1)
+        sensorObjects.append(self.f1)
+        sensorObjects.append(self.px1)
+        sensorObjects.append(self.b1)
+        sensorObjects.append(self.hrs)
+        sensorObjects.append(self.gps)
 
 
         return sensorObjects

@@ -39,20 +39,22 @@ import time
 import threading
 import random
 import sensor_data_generators as sdg
+import broadcast_system as bs
 
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--nodeid', help='a number', required=False)
-vechile_id = args_parser.parse_args().nodeid
+#vechile_id = args_parser.parse_args().nodeid
 #vechile_id = 1245
 
 def send_broadcast(data) :
     logging.info("Broadcasting")
 
 
-class VehicleControls:
-    def __init__( self, vechile_id ):
-        self.vechile_id = vechile_id
+class VehicleControls( bs.BroadcastSystem):
+    def __init__( self, vehicle_id, host_address, port ):
+        super().__init__(host_address, port)
+        self.vechile_id = vehicle_id
         self.lane = random.choices([0,1])
         self.speed = 0
         self.tyrePressure = 0
@@ -139,10 +141,10 @@ class VehicleControls:
             send_broadcast("["+ self.vechile_id +"] is overspeeding")
         
     def get_vehicle_runner_thread( self) :
-        return threading.Thread(target=v.runVehicle, args=( ))
+        return threading.Thread(target=self.runVehicle, args=( ))
 
-v = VehicleControls(vechile_id)
+#v = VehicleControls(vechile_id)
 
-runner = v.get_vehicle_runner_thread()
+#runner = v.get_vehicle_runner_thread()
 
-runner.start()
+#runner.start()
