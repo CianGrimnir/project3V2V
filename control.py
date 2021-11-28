@@ -50,6 +50,15 @@ args_parser.add_argument('--nodeid', help='a number', required=False)
 def send_broadcast(data) :
     logging.info("Broadcasting")
 
+class infraNode( bs.BroadcastSystem) :
+    '''
+        Possible scenerios :
+            1. ?
+            2. 
+    '''
+    pass
+
+
 
 class VehicleControls( bs.BroadcastSystem):
     def __init__( self, vehicle_id, host_address, listening_port ):
@@ -82,8 +91,8 @@ class VehicleControls( bs.BroadcastSystem):
                     self.process_proximity_data(data)
                 elif data[0] == 'GPS' :
                     self.process_gps_data(data)
-                elif data[0] == 'BPS' : 
-                    self.process_BP_data(data)
+                elif data[0] == 'HRS' : 
+                    self.process_HRS_data(data)
                 elif data[0] == 'BRK' : 
                     self.process_brake_sensor_data(data)
                 elif data[0] == 'FLG' : 
@@ -95,14 +104,14 @@ class VehicleControls( bs.BroadcastSystem):
         if data[1] < 15 :
             logging.info(f'[{self.vechile_id}] Broadcasting low fuel alert')
             send_broadcast(f'[{ self.vechile_id }] low fuel alert')
-
+    
     def process_brake_sensor_data(self, data):
         self.brake = data[1]
         if data[1] < 100 :
             logging.info(f'[{ self.vechile_id }] Broadcasting stopping alert')
             send_broadcast(f'[{ self.vechile_id }] stopping alert')
 
-    def process_BP_data(self, data):
+    def process_HRS_data(self, data):
         self.BP = data[1]
         if data[1] < 100 :
             logging.info( f'[{self.vechile_id}] Broadcasting passenger in danger alert')
