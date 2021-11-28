@@ -5,11 +5,11 @@ import threading
 import time
 
 class Vehicle( ctrl.VehicleControls) :
-    def __init__(self, vehicle_id, host_address, listening_port):
-        super().__init__(vehicle_id, host_address, listening_port)
+    def __init__(self, vehicle_id, host_address, listening_port, sending_port):
+        super().__init__(vehicle_id, host_address, listening_port, sending_port)
     
-    def deploy(self, sending_port):
-        return super().deploy(sending_port)
+    def deploy(self):
+        return super().deploy()
         
     
 def Main() :
@@ -19,9 +19,9 @@ def Main() :
     args = my_parser.parse_args()
     hostname = socket.gethostname()
     host = socket.gethostbyname(hostname)
-    get_vehicle = Vehicle( 123, host, int(args.listen_port))
+    get_vehicle = Vehicle( 123, host, int(args.listen_port), int(args.sending_port))
 
-    get_vehicle.deploy(args.sending_port)
+    get_vehicle.deploy()
 
 if __name__ == '__main__':
     Main()

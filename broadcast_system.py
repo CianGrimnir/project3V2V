@@ -4,10 +4,11 @@ import socket
 import threading
 import time
 
-from communications import p2p
+#from communications import p2p
 
 
 # lock = threading.RLock()
+
 
 
 class HostConfigure:
@@ -17,11 +18,13 @@ class HostConfigure:
 
 
 class BroadcastSystem(HostConfigure):
-    def __init__(self, host_address, port):
+    def __init__(self, host_address, port, sending_port):
         super(BroadcastSystem, self).__init__(host_address, port)
         self.pair_list = {}
         self.broadcast_port = 33341
         self.lock = threading.Lock()
+        self.listening_port = port
+        self.sending_port = sending_port
 
     def peer_list_updater(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -74,26 +77,23 @@ class BroadcastSystem(HostConfigure):
                 # print(f'error receiving {e} {addr}')
             conn.close()
 
-    def send_information(self, sending_port):
-        while True:
-            time.sleep(2)
-            delNode = []
-            for peer in list(self.pair_list):
-                peer_host = self.pair_list[peer].host
-                peer_port = int(self.pair_list[peer].port)
-                if self.host == peer_host and self.port == peer_port:
-                    continue
-                node = p2p()
-                print("sending ...", peer_host, peer_port)
-                message = f"sample {self.host} {self.port}"
-                flag = node.send_messages(peer_host, peer_port, int(sending_port), message)
-                print(f'data send status : {flag}')
-                if not flag and len(self.pair_list) > 1:
-                    print(f'key {peer}')
-                    delNode.append(peer)
-            self.reorder_pairlist(delNode)
-            delNode.clear()
-            time.sleep(7)
+    def send_information(self, data):
+        time.sleep(2)
+        delNode = []
+        for peer in list(self.pair_list):
+            peer_host = self.pair_list[peer].host
+            peer_port = int(self.pair_list[peer].port)
+            if self.host == peer_host and self.port == peer_port:
+                continue
+            print("sending ...", peer_host, peer_port)
+            flag = self.send_messages(peer_host, peer_port, self.sending_port, data)
+            print(f'data send status : {flag}')
+            if not flag and len(self.pair_list) > 1:
+                print(f'key {peer}')
+                delNode.append(peer)
+        self.reorder_pairlist(delNode)
+        delNode.clear()
+        time.sleep(7)
 
     def reorder_pairlist(self, delete_node):
         print(f'KEYS ---- {delete_node}')
@@ -103,13 +103,31 @@ class BroadcastSystem(HostConfigure):
             print(f'popped index {node} {pop}')
         self.lock.release()
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
+    
+    def send_messages(self, host, port, send_port, data):
+        server_address = (host, port)
+        flag = True
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setblocking(False)
+        print(host, send_port)
+        self.sock.bind((host, send_port))
+        self.sock.connect_ex(server_address)
+        try:
+            self.sock.send(data.encode('utf-8'))
+            self.sock.close()
+            return flag
+        except Exception as e:
+            print(f'{e} {server_address}')
+            self.sock.close()
+            return False
 
-    def deploy(self, sending_port):
+    def deploy(self):
 
         server_thread = threading.Thread(target=self.server_side)
         peer_thread = threading.Thread(target=self.peer_list_updater)
         info_thread = threading.Thread(target=self.information_listener)
-        sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
+        #sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
 
         server_thread.start()
         peer_thread.start()
@@ -117,5 +135,4 @@ class BroadcastSystem(HostConfigure):
         time.sleep(5)
         info_thread.start()
 
-        sensor_thread.start()
-
+        #sensor_thread.start()
