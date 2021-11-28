@@ -54,7 +54,7 @@ class BroadcastSystem(HostConfigure):
     def server_side(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        message = {'host': self.host, 'port': self.port}
+        message = {'host': self.host, 'port': self.port, 'send_port': self.sending_port}
         encode_data = json.dumps(message, indent=2).encode('utf-8')
         while True:
             server.sendto(encode_data, ('<broadcast>', self.broadcast_port))
