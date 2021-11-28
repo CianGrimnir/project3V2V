@@ -25,6 +25,7 @@ class BroadcastSystem(HostConfigure):
         self.lock = threading.Lock()
         self.listening_port = port
         self.sending_port = sending_port
+        self.sock = None
 
     def peer_list_updater(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
