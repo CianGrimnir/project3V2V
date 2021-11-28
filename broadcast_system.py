@@ -73,7 +73,7 @@ class BroadcastSystem(HostConfigure):
                 recv_data = conn.recv(1024)
                 decoded_data = recv_data.decode('utf-8')
                 print(f'received data : {decoded_data} from {addr}')
-                handler()
+                handler(decoded_data)
             except Exception as e:
                 pass
                 # print(f'error receiving {e} {addr}')

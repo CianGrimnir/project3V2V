@@ -40,30 +40,35 @@ import threading
 import random
 import sensor_data_generators as sdg
 import broadcast_system as bs
-#import communications as comms
 
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--nodeid', help='a number', required=False)
-#vechile_id = args_parser.parse_args().nodeid
-#vechile_id = 1245
-
-def send_broadcast___dummy( data) :
-    pass
-
 
 
 FUEL_LIMIT = 80
+
 class InfraControls( bs.BroadcastSystem) :
     def __init__( self, vehicle_id, host_address, listening_port, sending_port ):
         super().__init__(host_address, listening_port, sending_port)
         self.sensors = """ list of sensors for infra--->  weather, """
+        self.nodeId = vehicle_id
+    def runInfra(self) :
+        threading.Thread(target=self.periodic_updater).start()
     
-    def runInfra() :
-        pass
+    #Whenever a new data is received on this node, 
+    #the control comes here.
+    def information_processor(self, data) :
+        """Wat to do with the received data ? """
+        print("On infra--->["+data+"]")
 
+    def periodic_updater(self) :
+        while True :
+            self.send_information("{'infraNodeId': '"+ str(self.nodeId) +"', ''alert' : 'Weather alert', 'senorId' : 'WTR', 'senorReading' : dummy_readings}")
+            time.sleep(10)
     def deploy(self):
-        return super().deploy(self.information_listener)
+        super().deploy(self.information_processor)
+        self.runInfra()
     
         
 
