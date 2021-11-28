@@ -1,6 +1,5 @@
-# Author : Omkar
-# generate random integer values
-from random import seed
+#Author: Omkar
+# generate sensor values
 from random import randint
 import time
 from datetime import datetime
@@ -139,57 +138,135 @@ class FuelSensor():
         if(self.FUEL >100):
             self.FUEL = 100
 
-class Sensors:
-    def getSensors(self):
-        self.pressureSensor = PressureSensor()
-        self.speedSensor = SpeedSensor()
-        self.lightSensor = LightSensor()
-        self.fuelSensor = FuelSensor()
+
+class ProximitySensor:
+    def __init__(self):
+        self.PROXIMITY_LEFT = False
+        self.PROXIMITY_RIGHT = False
+        self.PROXIMITY_FRONT = False
+        self.PROXIMITY_BEHIND = False
+
+    def GET_DATA(self, FLAG='LEFT'):
+        randvalue = randint(0,100)
+        randvalue1 = randint(0,100)
+        randvalue2 = randint(0,100)
+        randvalue3 = randint(0,100)
+
+        # Flip the output pobability 33%
+        if(randvalue>=67):
+            self.PROXIMITY_LEFT = (not self.PROXIMITY_LEFT)
+
+        if(randvalue1>=67):
+            self.PROXIMITY_RIGHT = (not self.PROXIMITY_RIGHT)
+
+        if(randvalue2>=67):
+            self.PROXIMITY_FRONT = (not self.PROXIMITY_FRONT)
+
+        if(randvalue3>=67):
+            self.PROXIMITY_BEHIND = (not self.PROXIMITY_BEHIND)
+
+        if(FLAG=='LEFT'):
+            return ['PRX',self.PROXIMITY_LEFT]
+        if(FLAG=='RIGHT'):
+            return ['PRX',self.PROXIMITY_RIGHT]
+        if(FLAG=='FRONT'):
+            return ['PRX',self.PROXIMITY_FRONT]
+        if(FLAG=='BEHIND'):
+            return ['PRX',self.PROXIMITY_BEHIND]
+
+class BrakeSensor:
+
+    def __init__(self):
+        self.BRAKE_APPLIED = False
+        self.TICKS = 0
+
+    def ApplyBrake(self):
+        self.BRAKE_APPLIED = True
+        self.TICKS = 0
+
+    def GET_DATA(self):
+
+        if(self.BRAKE_APPLIED== True and self.TICKS == 4 ):
+            self.BRAKE_APPLIED = False
+            self.TICKS=0
+
+        self.TICKS += 1
+
+        return ['BRK',self.BRAKE_APPLIED]
+
+class HeartRateSensor:
+
+    def __init__(self):
+        self.INITIAL_HEART_RATE = randint(60,100)
+
+    def GET_DATA(self):
+
+        randvalue2 = randint(0,100)
+        if randvalue2 <= 33:  # return same as initial value
+            self.HEART_RATE = self.INITIAL_HEART_RATE
+        elif randvalue2 > 33 and randvalue2 <=66: # decrease in heart rate
+            self.HEART_RATE = self.INITIAL_HEART_RATE - 1
+            self.INITIAL_HEART_RATE = self.INITIAL_HEART_RATE - 1
+        else:                                       # increase in heart rate
+            self.HEART_RATE = self.INITIAL_HEART_RATE + 1
+            self.INITIAL_HEART_RATE = self.INITIAL_HEART_RATE + 1
+
+        return ['HRS',self.HEART_RATE]
+
+
+class GPSSensor:
+
+    def __init__(self):
+        self.INITIAL_LAT = 53.3498
+        self.INITIAL_LONG = 6.2603
+
+        self.INITIAL_LAT = self.INITIAL_LAT + randint(0,10)/10
+        self.INITIAL_LONG = self.INITIAL_LONG + randint(0,10)/10
+
+    def GET_DATA(self):
+
+        self.INITIAL_LAT += randint(0,10)/1000
+        self.INITIAL_LONG += randint(0,10)/1000
+
+        return ['GPS', "("+str(self.INITIAL_LAT)+","+str(self.INITIAL_LONG)+")"]
+
+
+class Sensor:
+    def GetSensors(self):
+        p1 = PressureSensor()
+        s1 = SpeedSensor()
+        l1 = LightSensor()
+        f1 = FuelSensor()
+        px1 = ProximitySensor()
+        b1 = BrakeSensor()
+        hrs = HeartRateSensor()
+        gps = GPSSensor()
 
         sensorObjects = []
-        sensorObjects.append(self.pressureSensor)
-        sensorObjects.append(self.speedSensor)
-        sensorObjects.append(self.lightSensor)
-        sensorObjects.append(self.fuelSensor)
+        sensorObjects.append(p1)
+        sensorObjects.append(s1)
+        sensorObjects.append(l1)
+        sensorObjects.append(f1)
+        sensorObjects.append(px1)
+        sensorObjects.append(b1)
+        sensorObjects.append(hrs)
+        sensorObjects.append(gps)
+
 
         return sensorObjects
 
 def GET_SENSOR_DATA():
 
+# For Testing
+    S = Sensor()
+    Sobj = S.GetSensors()
 
-    S = Sensors()
-    Sobj = S.getSensors()
-
-    for s in Sobj:
-        print(s.GET_DATA())
-
-
-
-    # This is just for TESTING
-
-    p1 = PressureSensor()
-    s1 = SpeedSensor()
-    l1 = LightSensor()
-    f1 = FuelSensor()
-
-    for _ in range(0,100):
+    for _ in range(100):
         time.sleep(1)
-        PRESSURE = p1.GET_DATA()
-
-        if(_%20 ==0):
-            SPEED = s1.GET_DATA('DECREASE')    #Trial for decrease
-        else:
-            SPEED = s1.GET_DATA('DEFAULT')
-
-        LIGHT = l1.GET_DATA()
-
-        FUEL = f1.GET_DATA()
-
-        print("PRESSURE: "+str(PRESSURE[1]))
-        print("SPEED: "+str(SPEED[1]))
-        print("LIGHT: "+str(LIGHT[1]))
-        print("FUEL: "+str(FUEL[1]))
+        for s in Sobj:
+            print(s.GET_DATA())
 
 
-#GET_SENSOR_DATA()
+
+GET_SENSOR_DATA()
 
