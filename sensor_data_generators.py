@@ -261,7 +261,7 @@ class Sensors:
 def GET_SENSOR_DATA():
 
 # For Testing
-    S = Sensor()
+    S = Sensors()
     Sobj = S.GetSensors()
 
     for _ in range(100):
