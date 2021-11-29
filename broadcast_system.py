@@ -4,11 +4,11 @@ import socket
 import threading
 import time
 
-#from communications import p2p
+
+# from communications import p2p
 
 
 # lock = threading.RLock()
-
 
 
 class HostConfigure:
@@ -34,12 +34,13 @@ class BroadcastSystem(HostConfigure):
         client.bind(("", self.broadcast_port))
         while True:
             data = client.recvfrom(1024)
-           
+
             decoded_data = json.loads(data[0].decode('utf-8'))
             print(decoded_data)
             peer_host = decoded_data['host']
             peer_port = int(decoded_data['port'])
-            flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in list(self.pair_list)]
+            flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in
+                    list(self.pair_list)]
             print(f'flag {flag}')
             if any(flag):
                 pass
@@ -105,7 +106,7 @@ class BroadcastSystem(HostConfigure):
             print(f'popped index {node} {pop}')
         self.lock.release()
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
-    
+
     def send_messages(self, host, port, send_port, data):
         server_address = (host, port)
         flag = True
@@ -128,8 +129,8 @@ class BroadcastSystem(HostConfigure):
 
         server_thread = threading.Thread(target=self.server_side)
         peer_thread = threading.Thread(target=self.peer_list_updater)
-        info_thread = threading.Thread(target=self.information_listener, args = ( handler, ))
-        #sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
+        info_thread = threading.Thread(target=self.information_listener, args=(handler,))
+        # sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
 
         server_thread.start()
         peer_thread.start()
@@ -137,4 +138,4 @@ class BroadcastSystem(HostConfigure):
         time.sleep(5)
         info_thread.start()
 
-        #sensor_thread.start()
+        # sensor_thread.start()
