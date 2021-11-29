@@ -113,7 +113,7 @@ class BroadcastSystem(HostConfigure):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self.sock.setblocking(False)
-        print(self.host, self.sending_port)
+        # print(self.host, self.sending_port)
         self.sock.bind((self.host, self.sending_port))
         self.sock.connect_ex(server_address)
         try:
