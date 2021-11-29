@@ -73,7 +73,7 @@ class BroadcastSystem(HostConfigure):
             try:
                 recv_data = conn.recv(1024)
                 decoded_data = recv_data.decode('utf-8')
-                print(f'received data : {decoded_data} from {addr}')
+                print(f'Received data : {decoded_data} from {addr}')
                 handler(decoded_data)
             except Exception as e:
                 pass
@@ -88,9 +88,9 @@ class BroadcastSystem(HostConfigure):
             peer_port = int(self.pair_list[peer].port)
             if self.host == peer_host and self.port == peer_port:
                 continue
-            print("sending ...", peer_host, peer_port)
+            #print("sending ...", peer_host, peer_port)
             flag = self.send_messages(peer_host, peer_port, data)
-            print(f'data send status : {flag}')
+            print(f'Data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
                 #print(f'key {peer}')
                 delNode.append(peer)
