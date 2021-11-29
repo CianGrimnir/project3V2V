@@ -199,7 +199,25 @@ class BrakeSensor:
 class HeartRateSensor:
 
     def __init__(self):
-        self.INITIAL_HEART_RATE = randint(60,100)
+        self.INITIAL_HEART_RATE = self.SET_INITIAL_HEART_RATE()
+
+    def SET_INITIAL_HEART_RATE(self):
+        randvalue = randint(0, 100)
+
+        if(randvalue <= 97): # 97% chance of normal heart rate
+            #print("1")
+            INITIAL_VALUE = randint(60,100)      # Normal tyre pressure
+        elif randvalue == 98:
+            #print("2")
+            INITIAL_VALUE = randint(40,60)      # 1% chance Below Normal
+        elif randvalue == 99:
+            #print("3")
+            INITIAL_VALUE = randint(100,120)      # 1% chance Above normal
+        else:
+            #print("4")
+            INITIAL_VALUE = randint(0,40)      # 1% chance very low
+
+        return INITIAL_VALUE
 
     def GET_DATA(self):
 
@@ -264,7 +282,7 @@ def GET_SENSOR_DATA():
 
 # For Testing
     S = Sensors()
-    Sobj = S.GetSensors()
+    Sobj = S.getSensors()
 
     for _ in range(100):
         time.sleep(1)
