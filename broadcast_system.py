@@ -88,7 +88,7 @@ class BroadcastSystem(HostConfigure):
             if self.host == peer_host and self.port == peer_port:
                 continue
             print("sending ...", peer_host, peer_port)
-            flag = self.send_messages(peer_host, peer_port, self.sending_port, data)
+            flag = self.send_messages(peer_host, peer_port, data)
             print(f'data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
                 print(f'key {peer}')
@@ -106,14 +106,14 @@ class BroadcastSystem(HostConfigure):
         self.lock.release()
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
     
-    def send_messages(self, host, port, send_port, data):
+    def send_messages(self, host, port, data):
         server_address = (host, port)
         flag = True
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setblocking(False)
-        print(host, send_port)
-        self.sock.bind((host, send_port))
+        # self.sock.setblocking(False)
+        print(self.host, self.sending_port)
+        self.sock.bind((self.host, self.sending_port))
         self.sock.connect_ex(server_address)
         try:
             self.sock.send(data.encode('utf-8'))
