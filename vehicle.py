@@ -32,11 +32,11 @@ def Main() :
     if args.node_type != None : 
         is_infra = args.node_type == 'I' or args.node_type == "i"
     if not is_infra:
-        print("Vehicle")
+        print("Vehicle-", args.vehicle_id)
         get_vehicle = Vehicle( int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port))
         get_vehicle.deploy()
     else :
-        print("isInfra")
+        print("isInfra-",args.vehicle_id)
         get_infra = Infra( int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port))
         get_infra.deploy()
 

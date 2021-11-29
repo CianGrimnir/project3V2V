@@ -36,21 +36,22 @@ class BroadcastSystem(HostConfigure):
             data = client.recvfrom(1024)
            
             decoded_data = json.loads(data[0].decode('utf-8'))
-            print(decoded_data)
+            #print(decoded_data)
             peer_host = decoded_data['host']
             peer_port = int(decoded_data['port'])
             flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in list(self.pair_list)]
-            print(f'flag {flag}')
+            #print(f'flag {flag}')
             if any(flag):
                 pass
             else:
                 self.lock.acquire()
                 index = peer_host + str(peer_port)
                 self.pair_list[index] = HostConfigure(peer_host, peer_port)
-                print(f'index - {index} {self.pair_list[index]}')
+                #print(f'index - {index} {self.pair_list[index]}')
                 self.lock.release()
+            print("PeerList-Starts----->")
             print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
-
+            print("PeerList-Ends---->")
     def server_side(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -88,32 +89,32 @@ class BroadcastSystem(HostConfigure):
             if self.host == peer_host and self.port == peer_port:
                 continue
             print("sending ...", peer_host, peer_port)
-            flag = self.send_messages(peer_host, peer_port, self.sending_port, data)
+            flag = self.send_messages(peer_host, peer_port, data)
             print(f'data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
-                print(f'key {peer}')
+                #print(f'key {peer}')
                 delNode.append(peer)
         self.reorder_pairlist(delNode)
         delNode.clear()
         time.sleep(7)
 
     def reorder_pairlist(self, delete_node):
-        print(f'KEYS ---- {delete_node}')
+        #print(f'KEYS ---- {delete_node}')
         self.lock.acquire()
         for node in delete_node:
             pop = self.pair_list.pop(node)
-            print(f'popped index {node} {pop}')
+            #print(f'popped index {node} {pop}')
         self.lock.release()
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
     
-    def send_messages(self, host, port, send_port, data):
+    def send_messages(self, host, port, data):
         server_address = (host, port)
         flag = True
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.setblocking(False)
-        print(host, send_port)
-        self.sock.bind((host, send_port))
+        # self.sock.setblocking(False)
+        print(self.host, self.sending_port)
+        self.sock.bind((self.host, self.sending_port))
         self.sock.connect_ex(server_address)
         try:
             self.sock.send(data.encode('utf-8'))
