@@ -65,14 +65,14 @@ class InfraControls( bs.BroadcastSystem) :
         print("On infra--->["+data+"]")
         data = json.loads(data)
         if data["senorId"] == "LT" :
-            logging.info("Recieved low fuel alert from vechile[" + data["vehicleId"] + "]")
-            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "control" : "Turn on lights" ')
-            logging.info(" Successfully sent GAS STATION info to vechile[" + data["vehicleId"] + "]")
-        elif data["senorId"] == "FLG" :
             logging.info("Recieved LOW LIGHTS alert from vechile[" + data["vehicleId"] + "]")
-            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "destination" : "Gas Station 10021", "dataType" : "GPS", "lat" : "'+53.3498 - randint(0,10)+'", "lon" : "'+6.2603 - randint(0,10)+'" ')
+            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "control" : "Turn on lights" ')
             logging.info(" Successfully sent lights control signal to vechile[" + data["vehicleId"] + "]")
-        
+        elif data["senorId"] == "FLG" :
+            logging.info("Recieved LOW FUEL alert from vechile[" + data["vehicleId"] + "]")
+            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "destination" : "Gas Station 10021", "dataType" : "GPS", "lat" : "'+ str( 53.3498 - randint(0,10) )+'", "lon" : "'+ str( 6.2603 - randint(0,10) )+'" ')
+            logging.info(" Successfully sent GAS STATION info to vechile[" + data["vehicleId"] + "]")
+
     #Thread to push periodic updates to all connected nodes
     def periodic_updater(self) :
         while True :
