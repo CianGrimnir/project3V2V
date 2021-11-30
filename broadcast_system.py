@@ -3,6 +3,7 @@ import json
 import socket
 import threading
 import time
+import encryption
 
 #from communications import p2p
 
@@ -71,10 +72,10 @@ class BroadcastSystem(HostConfigure):
             conn, addr = server.accept()
             conn.setblocking(False)
             try:
-                recv_data = conn.recv(1024)
-                decoded_data = recv_data.decode('utf-8')
-                print(f'Received data : {decoded_data} from {addr}')
-                handler(decoded_data)
+                recv_data = conn.recv(10240)
+                decrypt_data = encryption.do_decrypt(recv_data)
+                print(f'decrypted data : {decrypt_data} from {addr}')
+                handler(decrypt_data)
             except Exception as e:
                 pass
                 # print(f'error receiving {e} {addr}')
@@ -88,8 +89,9 @@ class BroadcastSystem(HostConfigure):
             peer_port = int(self.pair_list[peer].port)
             if self.host == peer_host and self.port == peer_port:
                 continue
-            #print("sending ...", peer_host, peer_port)
-            flag = self.send_messages(peer_host, peer_port, data)
+            enc_data = encryption.do_encrypt(data)
+            # print(f"normal data {data}\nencrypted data {enc_data}")
+            flag = self.send_messages(peer_host, peer_port, enc_data)
             print(f'Data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
                 #print(f'key {peer}')
@@ -117,7 +119,7 @@ class BroadcastSystem(HostConfigure):
         self.sock.bind((self.host, self.sending_port))
         self.sock.connect_ex(server_address)
         try:
-            self.sock.send(data.encode('utf-8'))
+            self.sock.send(data)
             self.sock.close()
             return flag
         except Exception as e:
