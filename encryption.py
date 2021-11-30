@@ -4,17 +4,26 @@ from Crypto.PublicKey import RSA
 import string
 import random
 from Crypto.Cipher import AES
+import base64
+from Crypto import Random
+import os, hashlib
+
+
+BLOCK_SIZE = 16
+padding = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
+unpadding = lambda s: s[:-ord(s[len(s) - 1:])]
 
 
 def do_encrypt(message):
-#    while len(bytes(message, encoding='utf-8')) % 16 != 0:
-#        message = message + random.choice(string.ascii_letters)
-    obj = AES.new('This is a key133', AES.MODE_CBC, 'This is an IV456')
-    ciphertext = obj.encrypt(message)
+    IV = hashlib.md5(os.urandom(128)).hexdigest()[:16]
+    cipher = AES.new('abcd1234efgh5678'.encode("utf8"), AES.MODE_CBC, IV)
+    message = padding(message)
+    ciphertext = cipher.encrypt(message)
     return ciphertext
 
 
 def do_decrypt(ciphertext):
-    obj2 = AES.new('This is a key133', AES.MODE_CBC, 'This is an IV456')
-    message = obj2.decrypt(ciphertext)
+    IV = hashlib.md5(os.urandom(128)).hexdigest()[:16]
+    cipher = AES.new('abcd1234efgh5678'.encode("utf8"), AES.MODE_CBC, IV)
+    message = unpadding(cipher.decrypt(ciphertext))
     return message

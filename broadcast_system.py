@@ -73,9 +73,8 @@ class BroadcastSystem(HostConfigure):
             conn.setblocking(False)
             try:
                 recv_data = conn.recv(10240)
-                print(f"printing raw received {recv_data}")
                 decrypt_data = encryption.do_decrypt(recv_data)
-                print(f'received data : {decrypt_data} from {addr}')
+                print(f'decrypted data : {decrypt_data} from {addr}')
                 handler(decrypt_data)
             except Exception as e:
                 pass
@@ -90,10 +89,8 @@ class BroadcastSystem(HostConfigure):
             peer_port = int(self.pair_list[peer].port)
             if self.host == peer_host and self.port == peer_port:
                 continue
-            #print("sending ...", peer_host, peer_port)
             enc_data = encryption.do_encrypt(data)
-            print(f"data type {type(data)}")
-            print(f"normal data {data}\nencrypted data {enc_data}")
+            # print(f"normal data {data}\nencrypted data {enc_data}")
             flag = self.send_messages(peer_host, peer_port, enc_data)
             print(f'Data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
