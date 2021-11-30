@@ -156,7 +156,8 @@ class VehicleControls( bs.BroadcastSystem):
     def process_light_sensor_data(self, data):
         if data[1] == "LOW":
             logging.info(f'[ {self.vechile_id}] Broadcasting low lights alert')
-            self.send_information('{"vehicleId": "'+ str(self.vechile_id) +'", "alert" : "Low lights alert", "senorId" : "LT", "senorReading" : "'+ str(data[1])+'"}')
+            print(f"sensor LOW {str(data[1])} {type(data[1])}")
+            self.send_information(json.dumps({"vehicleId": str(self.vechile_id), "alert" : "Low lights alert", "senorId" : "LT", "senorReading" : str(data[1])}))
 
     def process_tyre_pressure_data(self, data):
         self.tyrePressure = + data[1]
@@ -175,7 +176,7 @@ class VehicleControls( bs.BroadcastSystem):
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=self.runVehicle, args=( ))
 
-    def information_processor() :
+    def information_processor():
         pass
     
     def deploy(self):
