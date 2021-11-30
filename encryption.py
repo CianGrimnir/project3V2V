@@ -34,4 +34,4 @@ def do_decrypt(ciphertext):
     cipher = AES.new('abcd1234efgh5678'.encode("utf8"), AES.MODE_CBC, iv)
     message = unpadding(cipher.decrypt(enc[16:]))
     #message = unpadding(cipher.decrypt(ciphertext))
-    return message
+    return message.decode("utf8")
