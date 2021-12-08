@@ -143,6 +143,15 @@ class BroadcastSystem(HostConfigure):
             try:
                 recv_data = conn.recv(10240)
                 decrypt_data = encryption.do_decrypt(recv_data)
+                if 'relay' in decrypt_data.keys():
+                    record = self.route_table[decrypt_data['relay']]
+                    if record['through'] == 'self':
+                        node = self.vehicle_id
+                    else:
+                        node = record['through']
+                    peer_host = self.pair_list[node].host
+                    peer_port = self.pair_list[node].port
+                    flag = self.send_messages(peer_host, peer_port, recv_data)
                 print(f'decrypted data : {decrypt_data} from {addr}')
                 handler(decrypt_data)
             except Exception as e:
@@ -158,6 +167,13 @@ class BroadcastSystem(HostConfigure):
             peer_port = int(self.pair_list[peer].port)
             if self.host == peer_host and self.port == peer_port:
                 continue
+            node_id = self.get_node_id((peer_host, peer_port))
+            record = self.route_table[node_id]
+            if record['through'] != 'self':
+                next_hop = record['through']
+                peer_host = self.pair_list[next_hop].host
+                peer_port = self.pair_list[next_hop].port
+                data.update({'relay': node_id})
             enc_data = encryption.do_encrypt(data)
             # print(f"normal data {data}\n encrypted data {enc_data}")
             flag = self.send_messages(peer_host, peer_port, enc_data)
