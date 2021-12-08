@@ -48,25 +48,27 @@ class BroadcastSystem(HostConfigure):
 
     def receive_route(self):
         self.get_route_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.get_route_sock.bind((MCAST_GRP, MCAST_PORT))
+        self.get_route_sock.bind(('', MCAST_PORT))
         mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
         self.get_route_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
         while True:
-            table, addr = self.route_sock.recvfrom(10240)
-            decoded_table = json.loads(table.decode('utf-8'))
-            print(f"decoded table from {addr} - {decoded_table}")
+            table, addr = self.get_route_sock.recvfrom(10240)
+            decoded_table = json.loads(table, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()})
+            print(f"DECODED TABLE from {addr} - {decoded_table}")
+            if decoded_table['node'] not in self.route_table.keys():
+                continue
             update_flag = False
             for node in decoded_table['route']:
                 if node == self.vehicle_id:
                     continue
-                new_hop = decoded_table[node]['hop'] + 1
+                new_hop = decoded_table['route'][node]['hop'] + 1
                 # through = self.get_node_id(addr)
                 through = decoded_table['node']
                 if node not in self.route_table.keys():
                     self.route_table[node] = {'hop': new_hop, 'through': through}
                     update_flag = True
                 elif new_hop < self.route_table[node]['hop']:
-                    self.route_table[node]['hop'] = {'hop': new_hop, 'through': through}
+                    self.route_table[node] = {'hop': new_hop, 'through': through}
                     update_flag = True
             if update_flag:
                 self.broadcast_route_table()
@@ -95,6 +97,7 @@ class BroadcastSystem(HostConfigure):
                 pass
         self.lock.release()
         print(f"updated route_table {self.route_table}")
+        self.broadcast_route_table()
 
     def peer_list_updater(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
