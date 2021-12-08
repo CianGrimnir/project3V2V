@@ -67,6 +67,7 @@ class BroadcastSystem(HostConfigure):
                     update_flag = True
                 elif new_hop < self.route_table[node]['hop']:
                     self.route_table[node]['hop'] = {'hop': new_hop, 'through': through}
+                    update_flag = True
             if update_flag:
                 self.broadcast_route_table()
 
