@@ -88,8 +88,8 @@ class InfraControls(bs.BroadcastSystem):
 
 
 class VehicleControls(bs.BroadcastSystem):
-    def __init__(self, vehicle_id, host_address, listening_port, sending_port):
-        super().__init__(host_address, listening_port, sending_port)
+    def __init__(self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
+        super().__init__(vehicle_id, host_address, listening_port, sending_port, (latitude, longitude))
         self.vehicle_id = vehicle_id
         self.lane = random.choices([0, 1])
         self.speed = 0
