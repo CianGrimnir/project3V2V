@@ -50,16 +50,17 @@ args_parser.add_argument('--nodeid', help='a number', required=False)
 
 FUEL_LIMIT = 80
 
+
 class InfraControls( bs.BroadcastSystem) :
     def __init__( self, vehicle_id, host_address, listening_port, sending_port ):
         super().__init__(host_address, listening_port, sending_port)
         self.sensors = """ list of sensors for infra--->  weather, """
         self.nodeId = vehicle_id
+
     def runInfra(self) :
         threading.Thread(target=self.periodic_updater).start()
     
-    #Whenever a new data is received on this node, 
-    #the control comes here.
+    # Whenever a new data is received on this node, the control comes here.
     def information_processor(self, data) :
         """Wat to do with the received data ? """
         print("On infra--->["+data+"]")
@@ -73,11 +74,11 @@ class InfraControls( bs.BroadcastSystem) :
             self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "destination" : "Gas Station 10021", "dataType" : "GPS", "lat" : "'+ str( 53.3498 - randint(0,10) )+'", "lon" : "'+ str( 6.2603 - randint(0,10) )+'" ')
             logging.info(" Successfully sent GAS STATION info to vechile[" + data["vehicleId"] + "]")
 
-    #Thread to push periodic updates to all connected nodes
+    # Thread to push periodic updates to all connected nodes
     def periodic_updater(self) :
         while True :
-            pedictions = ['rainy', 'sunny', 'windy', 'overcast' ] 
-            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "alert" : "Weather alert", "senorId" : "WTR", "senorReading" : "'+random.choices(pedictions)[0]+'"}')
+            predictions = ['rainy', 'sunny', 'windy', 'overcast' ]
+            self.send_information('{"infraNodeId": "'+ str(self.nodeId) +'", "alert" : "Weather alert", "senorId" : "WTR", "senorReading" : "'+random.choices(predictions)[0]+'"}')
             time.sleep(10)
     def deploy(self):
         super().deploy(self.information_processor)
@@ -86,8 +87,8 @@ class InfraControls( bs.BroadcastSystem) :
         
 
 class VehicleControls( bs.BroadcastSystem):
-    def __init__( self, vehicle_id, host_address, listening_port, sending_port ):
-        super().__init__(host_address, listening_port, sending_port)
+    def __init__( self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
+        super().__init__(host_address, listening_port, sending_port, (latitude, longitude))
         self.vechile_id = vehicle_id
         self.lane = random.choices([0,1])
         self.speed = 0
