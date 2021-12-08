@@ -152,6 +152,7 @@ class BroadcastSystem(HostConfigure):
             try:
                 recv_data = conn.recv(10240)
                 decrypt_data = encryption.do_decrypt(recv_data)
+                print(f'decrypted data : {decrypt_data} from {addr}')
                 if 'relay' in decrypt_data.keys():
                     record = self.route_table[decrypt_data['relay']]
                     if record['through'] == 'self':
@@ -161,7 +162,6 @@ class BroadcastSystem(HostConfigure):
                     peer_host = self.pair_list[node].host
                     peer_port = self.pair_list[node].port
                     flag = self.send_messages(peer_host, peer_port, recv_data)
-                print(f'decrypted data : {decrypt_data} from {addr}')
                 handler(decrypt_data)
             except Exception as e:
                 pass
@@ -177,7 +177,10 @@ class BroadcastSystem(HostConfigure):
             if self.host == peer_host and self.port == peer_port:
                 continue
             node_id = self.get_node_id((peer_host, peer_port))
-            record = self.route_table[node_id]
+            try:
+                record = self.route_table[node_id]
+            except KeyError as e:
+                continue
             if record['through'] != 'self':
                 next_hop = record['through']
                 peer_host = self.pair_list[next_hop].host
@@ -233,7 +236,7 @@ class BroadcastSystem(HostConfigure):
         peer_thread.start()
         # TODO: do we require this part for infra as well? If yes, we have to update the infra class with GPS data
         route_thread.start()
-        time.sleep(5)
+        time.sleep(15)
         info_thread.start()
 
         # sensor_thread.start()
