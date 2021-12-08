@@ -157,6 +157,7 @@ class BroadcastSystem(HostConfigure):
                     record = self.route_table[decrypt_data['relay']]
                     if record['through'] == 'self':
                         node = record['node']
+                        decrypt_data.pop('relay')
                     else:
                         node = record['through']
                     peer_host = self.pair_list[node].host
