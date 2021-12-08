@@ -88,8 +88,11 @@ class BroadcastSystem(HostConfigure):
         print(f"KEYS ---- {node_list}")
         self.lock.acquire()
         for node in node_list:
-            pop = self.route_table.pop(node)
-            print(f"popped index {node} {pop}")
+            try:
+                pop = self.route_table.pop(node)
+                print(f"popped index {node} {pop}")
+            except KeyError as e:
+                pass
         self.lock.release()
         print(f"updated route_table {self.route_table}")
 
