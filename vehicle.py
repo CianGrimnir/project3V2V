@@ -51,6 +51,7 @@ def Main() :
     my_parser.add_argument('--sending_port', help='sending_port', required=True)
     my_parser.add_argument('--vehicle_id', help='vehicle_id', required=True)
     my_parser.add_argument('--node_type', help='node_type', required=False)
+    my_parser.add_argument('--api_port', help='api_port', required=False)
     
     args = my_parser.parse_args()
     hostname = socket.gethostname()
@@ -66,7 +67,8 @@ def Main() :
         print("isInfra-",args.vehicle_id)
         get_infra = Infra( int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port))
         get_infra.deploy()
-
+    app.run(host='localhost', port=int(args.api_port))
+    
 if __name__ == '__main__':
     Main()
-    app.run(host='localhost', port=5000)
+    
