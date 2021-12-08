@@ -18,8 +18,9 @@ class HostConfigure:
 
 
 class BroadcastSystem(HostConfigure):
-    def __init__(self, host_address, port, sending_port, gps):
+    def __init__(self, vehicle_id, host_address, port, sending_port, gps):
         super(BroadcastSystem, self).__init__(host_address, port)
+        self.vehicle_id = vehicle_id
         self.pair_list = {}
         self.broadcast_port = 33341
         self.lock = threading.Lock()
@@ -34,21 +35,19 @@ class BroadcastSystem(HostConfigure):
         client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         client.bind(("", self.broadcast_port))
         while True:
-            data = client.recvfrom(1024)
-
+            data = client.recvfrom(10240)
             decoded_data = json.loads(data[0].decode('utf-8'))
             # print(decoded_data)
+            node_id = decoded_data['node']
             peer_host = decoded_data['host']
             peer_port = int(decoded_data['port'])
             flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in list(self.pair_list)]
             # print(f"flag {flag}")
-            if any(flag):
-                pass
-            else:
+            if not any(flag):
                 self.lock.acquire()
-                index = peer_host + str(peer_port)
-                self.pair_list[index] = HostConfigure(peer_host, peer_port)
-                # print(f"index - {index} {self.pair_list[index]}")
+                # index = peer_host + str(peer_port)
+                self.pair_list[node_id] = HostConfigure(peer_host, peer_port)
+                print(f"index - {node_id} {self.pair_list[node_id]}")
                 self.lock.release()
             print("PeerList-Starts----->")
             print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
@@ -57,7 +56,7 @@ class BroadcastSystem(HostConfigure):
     def broadcast_information(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        message = {'host': self.host, 'port': self.port, 'send_port': self.sending_port, 'location': self.gps}
+        message = {'node': self.vehicle_id, 'host': self.host, 'port': self.port, 'send_port': self.sending_port, 'location': self.gps}
         encode_data = json.dumps(message, indent=2).encode('utf-8')
         while True:
             server.sendto(encode_data, ('<broadcast>', self.broadcast_port))
@@ -102,11 +101,11 @@ class BroadcastSystem(HostConfigure):
         time.sleep(7)
 
     def reorder_pairlist(self, delete_node):
-        # print(f"KEYS ---- {delete_node}")
+        print(f"KEYS ---- {delete_node}")
         self.lock.acquire()
         for node in delete_node:
             pop = self.pair_list.pop(node)
-            # print(f"popped index {node} {pop}")
+            print(f"popped index {node} {pop}")
         self.lock.release()
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
 
