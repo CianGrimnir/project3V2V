@@ -3,8 +3,13 @@ import socket
 import threading
 import time
 import geopy.distance
-import math
 import encryption
+import struct
+
+# If other pi is not receiving the broadcast, increase the TTL
+MCAST_TTL = 1
+MCAST_GRP = '224.1.1.1'
+MCAST_PORT = 34599
 
 
 class HostConfigure:
@@ -25,6 +30,8 @@ class BroadcastSystem(HostConfigure):
         self.gps = gps
         # TODO: replace above code with the self.GPS defined in the control.py
         self.sock = None
+        self.route_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.get_route_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.route_table = {}
 
     def route_add(self, node_information):
@@ -36,6 +43,47 @@ class BroadcastSystem(HostConfigure):
             print(self.gps, node_coordinate, distance)
             if distance < 20:
                 self.route_table[node] = {'hop': 1, 'through': 'self'}
+                print(f"ROUTE TABLE UPDATE : {self.route_table}")
+
+    def receive_route(self):
+        self.get_route_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.get_route_sock.bind((MCAST_GRP, MCAST_PORT))
+        mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
+        self.get_route_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        while True:
+            table, addr = self.route_sock.recvfrom(10240)
+            decoded_table = json.loads(table.decode('utf-8'))
+            print(f"decoded table from {addr} - {decoded_table}")
+            for node in decoded_table:
+                if node == self.vehicle_id:
+                    continue
+                new_hop = decoded_table[node]['hop'] + 1
+                through = self.get_node_id(addr)
+                if node not in self.route_table.keys():
+                    self.route_table[node] = {'hop': new_hop, 'through': through}
+                elif new_hop < self.route_table[node]['hop']:
+                    self.route_table[node]['hop'] = {'hop': new_hop, 'through': through}
+
+    def get_node_id(self, remote_addr):
+        for node in list(self.pair_list):
+            if remote_addr[0] == self.pair_list[node].host and int(remote_addr[1]) == self.pair_list[node].port:
+                return node
+
+    def broadcast_route_table(self):
+        self.route_sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MCAST_TTL)
+        route_table_json = json.dumps(self.route_table)
+        self.route_sock.sendto(route_table_json.encode('utf-8'), (MCAST_GRP,MCAST_PORT))
+
+    def route_delete(self, node_list):
+        if not node_list:
+            return
+        print(f"KEYS ---- {node_list}")
+        self.lock.acquire()
+        for node in node_list:
+            pop = self.route_table.pop(node)
+            print(f"popped index {node} {pop}")
+        self.lock.release()
+        print(f"updated route_table {self.route_table}")
 
     def peer_list_updater(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -104,6 +152,7 @@ class BroadcastSystem(HostConfigure):
                 # print(f"key {peer}")
                 delNode.append(peer)
         self.reorder_pairlist(delNode)
+        self.route_delete(delNode)
         delNode.clear()
         time.sleep(7)
 
@@ -136,12 +185,13 @@ class BroadcastSystem(HostConfigure):
     def deploy(self, handler):
         server_thread = threading.Thread(target=self.broadcast_information)
         peer_thread = threading.Thread(target=self.peer_list_updater)
+        route_thread = threading.Thread(target=self.receive_route)
         info_thread = threading.Thread(target=self.information_listener, args=(handler,))
         # sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
 
         server_thread.start()
         peer_thread.start()
-
+        route_thread.start()
         time.sleep(5)
         info_thread.start()
 
