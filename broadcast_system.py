@@ -2,13 +2,9 @@ import json
 import socket
 import threading
 import time
+import geopy.distance
+import math
 import encryption
-
-
-# from communications import p2p
-
-
-# lock = threading.RLock()
 
 
 class HostConfigure:
@@ -18,7 +14,7 @@ class HostConfigure:
 
 
 class BroadcastSystem(HostConfigure):
-    def __init__(self, vehicle_id, host_address, port, sending_port, gps):
+    def __init__(self, vehicle_id, host_address, port, sending_port, gps=None):
         super(BroadcastSystem, self).__init__(host_address, port)
         self.vehicle_id = vehicle_id
         self.pair_list = {}
@@ -27,7 +23,19 @@ class BroadcastSystem(HostConfigure):
         self.listening_port = port
         self.sending_port = sending_port
         self.gps = gps
+        # TODO: replace above code with the self.GPS defined in the control.py
         self.sock = None
+        self.route_table = {}
+
+    def route_add(self, node_information):
+        node = node_information['node']
+        if node not in self.route_table.keys():
+            node_gps = node_information['location']
+            node_coordinate = (node_gps[0], node_gps[1])
+            distance = geopy.distance.geodesic(self.gps, node_coordinate).meters
+            print(self.gps, node_coordinate, distance)
+            if distance < 20:
+                self.route_table[node] = {'hop': 1, 'through': 'self'}
 
     def peer_list_updater(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -37,17 +45,15 @@ class BroadcastSystem(HostConfigure):
         while True:
             data = client.recvfrom(10240)
             decoded_data = json.loads(data[0].decode('utf-8'))
-            # print(decoded_data)
             node_id = decoded_data['node']
             peer_host = decoded_data['host']
             peer_port = int(decoded_data['port'])
             flag = [peer_host == self.pair_list[key].host and peer_port == self.pair_list[key].port for key in list(self.pair_list)]
-            # print(f"flag {flag}")
             if not any(flag):
                 self.lock.acquire()
-                # index = peer_host + str(peer_port)
                 self.pair_list[node_id] = HostConfigure(peer_host, peer_port)
                 print(f"index - {node_id} {self.pair_list[node_id]}")
+                self.route_add(decoded_data)
                 self.lock.release()
             print("PeerList-Starts----->")
             print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
@@ -56,6 +62,7 @@ class BroadcastSystem(HostConfigure):
     def broadcast_information(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        # TODO: add custom message for infra (without gps data), can use the hasattr method
         message = {'node': self.vehicle_id, 'host': self.host, 'port': self.port, 'send_port': self.sending_port, 'location': self.gps}
         encode_data = json.dumps(message, indent=2).encode('utf-8')
         while True:
@@ -115,7 +122,6 @@ class BroadcastSystem(HostConfigure):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self.sock.setblocking(False)
-        # print(self.host, self.sending_port)
         self.sock.bind((self.host, self.sending_port))
         self.sock.connect_ex(server_address)
         try:
