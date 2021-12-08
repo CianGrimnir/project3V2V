@@ -191,6 +191,7 @@ class BroadcastSystem(HostConfigure):
 
         server_thread.start()
         peer_thread.start()
+        # TODO: do we require this part for infra as well? If yes, we have to update the infra class with GPS data
         route_thread.start()
         time.sleep(5)
         info_thread.start()
