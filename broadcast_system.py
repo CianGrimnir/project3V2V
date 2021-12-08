@@ -40,7 +40,7 @@ class BroadcastSystem(HostConfigure):
             node_gps = node_information['location']
             node_coordinate = (node_gps[0], node_gps[1])
             distance = geopy.distance.geodesic(self.gps, node_coordinate).meters
-            print(self.gps, node_coordinate, distance)
+            # print(self.gps, node_coordinate, distance)
             if distance < 20:
                 self.route_table[node] = {'hop': 1, 'through': 'self'}
                 print(f"ROUTE TABLE UPDATE : {self.route_table}")
@@ -54,7 +54,7 @@ class BroadcastSystem(HostConfigure):
         while True:
             table, addr = self.get_route_sock.recvfrom(10240)
             decoded_table = json.loads(table, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()})
-            print(f"DECODED TABLE from {addr} - {decoded_table}")
+            # print(f"DECODED TABLE from {addr} - {decoded_table}")
             if decoded_table['node'] not in self.route_table.keys():
                 continue
             update_flag = False
@@ -97,12 +97,11 @@ class BroadcastSystem(HostConfigure):
     def route_delete(self, node_list):
         if not node_list:
             return
-        print(f"KEYS ---- {node_list}")
         self.lock.acquire()
         for node in node_list:
             try:
                 pop = self.route_table.pop(node)
-                print(f"popped index {node} {pop}")
+                print(f"popped route {node} {pop}")
             except KeyError as e:
                 pass
         self.lock.release()
@@ -183,12 +182,13 @@ class BroadcastSystem(HostConfigure):
                 next_hop = record['through']
                 peer_host = self.pair_list[next_hop].host
                 peer_port = self.pair_list[next_hop].port
+                if isinstance(data, str):
+                    data = json.loads(data)
                 data.update({'relay': node_id})
             data = json.dumps(data)
             enc_data = encryption.do_encrypt(data)
             # print(f"normal data {data}\n encrypted data {enc_data}")
             flag = self.send_messages(peer_host, peer_port, enc_data)
-            print(f'Data send status : {flag}')
             if not flag and len(self.pair_list) > 1:
                 # print(f"key {peer}")
                 delNode.append(peer)
@@ -198,7 +198,6 @@ class BroadcastSystem(HostConfigure):
         time.sleep(7)
 
     def reorder_pairlist(self, delete_node):
-        print(f"KEYS ---- {delete_node}")
         self.lock.acquire()
         for node in delete_node:
             pop = self.pair_list.pop(node)
