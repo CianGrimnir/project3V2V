@@ -44,6 +44,7 @@ class BroadcastSystem(HostConfigure):
             if distance < 20:
                 self.route_table[node] = {'hop': 1, 'through': 'self'}
                 print(f"ROUTE TABLE UPDATE : {self.route_table}")
+                self.broadcast_route_table()
 
     def receive_route(self):
         self.get_route_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -54,15 +55,20 @@ class BroadcastSystem(HostConfigure):
             table, addr = self.route_sock.recvfrom(10240)
             decoded_table = json.loads(table.decode('utf-8'))
             print(f"decoded table from {addr} - {decoded_table}")
-            for node in decoded_table:
+            update_flag = False
+            for node in decoded_table['route']:
                 if node == self.vehicle_id:
                     continue
                 new_hop = decoded_table[node]['hop'] + 1
-                through = self.get_node_id(addr)
+                # through = self.get_node_id(addr)
+                through = decoded_table['node']
                 if node not in self.route_table.keys():
                     self.route_table[node] = {'hop': new_hop, 'through': through}
+                    update_flag = True
                 elif new_hop < self.route_table[node]['hop']:
                     self.route_table[node]['hop'] = {'hop': new_hop, 'through': through}
+            if update_flag:
+                self.broadcast_route_table()
 
     def get_node_id(self, remote_addr):
         for node in list(self.pair_list):
@@ -71,7 +77,8 @@ class BroadcastSystem(HostConfigure):
 
     def broadcast_route_table(self):
         self.route_sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MCAST_TTL)
-        route_table_json = json.dumps(self.route_table)
+        send_route_db = {'node': self.vehicle_id, 'route': self.route_table}
+        route_table_json = json.dumps(send_route_db)
         self.route_sock.sendto(route_table_json.encode('utf-8'), (MCAST_GRP,MCAST_PORT))
 
     def route_delete(self, node_list):
