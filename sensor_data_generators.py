@@ -4,6 +4,20 @@ from random import randint
 import time
 from datetime import datetime
 
+#Azin
+class SensorControls :
+    __instance = None
+    FLAG='DEFAULT'
+    BRAKE_LOCK = False
+    BRAKE_APPLIED = False
+
+    @staticmethod
+    def getInstance():
+      if SensorControls.__instance == None :
+          SensorControls.__instance = SensorControls()
+      return SensorControls.__instance
+#Azin
+
 
 class PressureSensor:
 
@@ -42,24 +56,29 @@ class PressureSensor:
 
         return ['TP',self.PRESSURE]
 
-class SpeedSensor:
+class SpeedSensor( ):
 
     def __init__(self):
         self.INITIAL_SPEED = randint(40,80)
         self.SPEED=0
         self.TICKS=0
-        self.FLAG='DEFAULT'
+
 
     def SET_INITIAL_SPEED(self):
         self.INITIAL_SPEED = randint(40,80)
         return self.INITIAL_SPEED
 
-    def GET_DATA(self,param_FLAG='DEFAULT'):
+    def GET_DATA(self):
 
         if(self.TICKS == 0):
-            self.FLAG=param_FLAG
+            #Azin
+            self.FLAG= SensorControls.getInstance().FLAG
 
         randvalue2 = randint(0,100)
+        
+        #Azin
+        if SensorControls.getInstance().BRAKE_APPLIED :
+            self.FLAG = 'DECREASE'
 
         if randvalue2 <= 33 and self.FLAG=='DEFAULT':  # return same as initial value
             self.SPEED = self.INITIAL_SPEED
@@ -176,25 +195,25 @@ class ProximitySensor:
         # if(FLAG=='BEHIND'):
         #     return ['PRX',self.PROXIMITY_BEHIND]
 
-class BrakeSensor:
+class BrakeSensor():
 
     def __init__(self):
-        self.BRAKE_APPLIED = False
         self.TICKS = 0
 
     def ApplyBrake(self):
-        self.BRAKE_APPLIED = True
+        SensorControls.getInstance().BRAKE_APPLIED = True
         self.TICKS = 0
 
     def GET_DATA(self):
-
-        if(self.BRAKE_APPLIED== True and self.TICKS == 4 ):
-            self.BRAKE_APPLIED = False
+        #Azin
+        if self.TICKS == 4 :
+            if SensorControls.getInstance().BRAKE_LOCK != True:
+                SensorControls.getInstance().BRAKE_APPLIED = not SensorControls.getInstance().BRAKE_APPLIED
             self.TICKS=0
 
         self.TICKS += 1
 
-        return ['BRK',self.BRAKE_APPLIED]
+        return ['BRK',SensorControls.getInstance().BRAKE_APPLIED]
 
 class HeartRateSensor:
 
@@ -267,7 +286,7 @@ class Sensors:
 
         sensorObjects = []
         sensorObjects.append(self.p1)
-        sensorObjects.append(self.s1)
+        #sensorObjects.append(self.s1)
         sensorObjects.append(self.l1)
         sensorObjects.append(self.f1)
         sensorObjects.append(self.px1)
@@ -277,6 +296,17 @@ class Sensors:
 
 
         return sensorObjects
+    #Azin
+    def setSpeedSensor(self, value) :
+        self.s1.FLAG = value
+    #Azin
+    def applyBrake(self, value) :
+        if value == 'A' :
+            SensorControls.getInstance().BRAKE_APPLIED = True
+            SensorControls.getInstance().BRAKE_LOCK = True
+        else :
+            SensorControls.getInstance().BRAKE_APPLIED = False
+            SensorControls.getInstance().BRAKE_LOCK = False
 
 def GET_SENSOR_DATA():
 

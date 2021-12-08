@@ -98,8 +98,8 @@ class VehicleControls( bs.BroadcastSystem):
         self.fuel = 0
         self.brake = 0
         self.position = 0
-        sensorMaster = sdg.Sensors()
-        self.sensors= sensorMaster.getSensors() #[""" list of sensor objects"""]
+        self.sensorMaster = sdg.Sensors()
+        self.sensors= self.sensorMaster.getSensors() #[""" list of sensor objects"""]
 
     def runVehicle( self) :
         while True :
@@ -168,20 +168,30 @@ class VehicleControls( bs.BroadcastSystem):
     def process_speed_data(self, data):
         self.position = self.position + data[1]
         self.speed = data[1]
-        print( "position = " + str(self.position))
+        print( "position = " + str(self.position) + ", Speed = " + str(data[1]))
         if data[1] > 80 :
             logging.info(f'[{self.vechile_id}] Broadcasting overspeeding alert')
             self.send_information('{"vehicleId": "'+ str(self.vechile_id) +'", "alert" : "Over speeding alert", "senorId" : "SPD", "senorReading" : "'+ str(data[1])+'"}')
         
+    
     def get_vehicle_runner_thread( self) :
         return threading.Thread(target=self.runVehicle, args=( ))
 
     def information_processor():
         pass
-    
+
+    def stimulate_vehicle_run(self) :
+        while True :
+            data = self.sensorMaster.s1.GET_DATA()
+            self.process_speed_data(data)
+            time.sleep(2)
+
     def deploy(self):
         super().deploy(self.information_listener)
         self.get_vehicle_runner_thread().start()
+        threading.Thread(target=self.stimulate_vehicle_run, args=( )).start()
+    
+    
     
 
 #runner.start()

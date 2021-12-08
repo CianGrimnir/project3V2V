@@ -3,11 +3,38 @@ import argparse
 import socket
 import threading
 import time
+from flask import Flask, render_template
+
+
+app = Flask(__name__)
+@app.route('/vehicle/sensor_controls/speed/<string:value>')
+def speedControl(value):
+    vehicle = Vehicle.getInstance()
+    if value == "D" :
+        vehicle.sensorMaster.setSpeedSensor("DECREASE")
+    elif value == "I" :
+        vehicle.sensorMaster.setSpeedSensor("INCREASE")
+    else :
+        vehicle.sensorMaster.setSpeedSensor("DEFAULT")
+    return "Signal generated"
+
+@app.route('/vehicle/sensor_controls/brake/<string:value>')
+def brakeControl(value):
+    vehicle = Vehicle.getInstance()
+    vehicle.sensorMaster.applyBrake(value)
+    return "Signal generated"
 
 class Vehicle( ctrl.VehicleControls) :
+    __instance = None
+
+    @staticmethod 
+    def getInstance():
+      return Vehicle.__instance
+
     def __init__(self, vehicle_id, host_address, listening_port, sending_port):
         super().__init__(vehicle_id, host_address, listening_port, sending_port)
-    
+        Vehicle.__instance = self
+
     def deploy(self):
         return super().deploy()
 
@@ -42,3 +69,4 @@ def Main() :
 
 if __name__ == '__main__':
     Main()
+    app.run(host='localhost', port=5000)
