@@ -130,43 +130,42 @@ class VehicleControls(bs.BroadcastSystem):
         self.fuel = data[1]
         if data[1] < FUEL_LIMIT:
             logging.info(f'[{self.vehicle_id}] Broadcasting low fuel alert')
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Low fuel", "senorId": "FLG", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Low fuel", "senorId": "FLG", "senorReading": str(data[1])})
 
     def process_brake_sensor_data(self, data):
         self.brake = data[1]
         if data[1]:
             logging.info(f'[{self.vehicle_id}] Broadcasting stopping alert')
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Brake applied", "senorId": "BRK", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Brake applied", "senorId": "BRK", "senorReading": str(data[1])})
 
     def process_HRS_data(self, data):
         self.BP = data[1]
         if data[1] < 60 or data[1] > 100:
             logging.info(f'[{self.vehicle_id}] Broadcasting passenger in danger alert')
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Low or high heart rate", "senorId": "HRS", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Low or high heart rate", "senorId": "HRS", "senorReading": str(data[1])})
 
     def process_gps_data(self, data):
         self.GPS = data[1]
         logging.info(f'[{self.vehicle_id}] Broadcasting GPS signal')
-        self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "GPS co-ordinates", "senorId": "GPS", "senorReading": str(data[1])}))
+        self.send_information({"vehicleId": str(self.vehicle_id), "alert": "GPS co-ordinates", "senorId": "GPS", "senorReading": str(data[1])})
 
     def process_proximity_data(self, data):
         self.proximity = data[1]
         if data[1] == True or data[2] == True or data[3] == True or data[4] == True:
             logging.info(f'[{self.vehicle_id}] Broadcasting proximity alert')
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Proximity alert", "senorId": "PRX", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Proximity alert", "senorId": "PRX", "senorReading": str(data[1])})
 
     def process_light_sensor_data(self, data):
         if data[1] == "LOW":
             logging.info(f'[ {self.vehicle_id}] Broadcasting low lights alert')
             print(f"sensor LOW {str(data[1])} {type(data[1])}")
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Low lights alert", "senorId": "LT", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Low lights alert", "senorId": "LT", "senorReading": str(data[1])})
 
     def process_tyre_pressure_data(self, data):
         self.tyrePressure = + data[1]
         if data[1] < 30 or data[1] > 35:
             logging.info(f'[ {self.vehicle_id}] Broadcasting tyre pressure low alert')
-            self.send_information(json.dumps(
-                {"vehicleId": str(self.vehicle_id), "alert": "Low or high tyre pressure alert", "senorId": "TP", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Low or high tyre pressure alert", "senorId": "TP", "senorReading": str(data[1])})
 
     def process_speed_data(self, data):
         self.position = self.position + data[1]
@@ -174,7 +173,7 @@ class VehicleControls(bs.BroadcastSystem):
         print("position = " + str(self.position))
         if data[1] > 80:
             logging.info(f'[{self.vehicle_id}] Broadcasting over speeding alert')
-            self.send_information(json.dumps({"vehicleId": str(self.vehicle_id), "alert": "Over speeding alert", "senorId": "SPD", "senorReading": str(data[1])}))
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert": "Over speeding alert", "senorId": "SPD", "senorReading": str(data[1])})
 
     def get_vehicle_runner_thread(self):
         return threading.Thread(target=self.runVehicle, args=( ))

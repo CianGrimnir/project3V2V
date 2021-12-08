@@ -70,8 +70,18 @@ class BroadcastSystem(HostConfigure):
                 elif new_hop < self.route_table[node]['hop']:
                     self.route_table[node] = {'hop': new_hop, 'through': through}
                     update_flag = True
+            self.check_null_route(decoded_table)
             if update_flag:
                 self.broadcast_route_table()
+
+    def check_null_route(self, remote_route_table):
+        remove_route = []
+        route_through_node = [i for i in self.route_table if self.route_table[i]['through'] == remote_route_table['node']]
+        nodes = list(remote_route_table['route'].keys())
+        for node in route_through_node:
+            if node not in nodes:
+                remove_route.append(node)
+        self.route_delete(remove_route)
 
     def get_node_id(self, remote_addr):
         for node in list(self.pair_list):
@@ -146,7 +156,7 @@ class BroadcastSystem(HostConfigure):
                 if 'relay' in decrypt_data.keys():
                     record = self.route_table[decrypt_data['relay']]
                     if record['through'] == 'self':
-                        node = self.vehicle_id
+                        node = record['node']
                     else:
                         node = record['through']
                     peer_host = self.pair_list[node].host
@@ -174,6 +184,7 @@ class BroadcastSystem(HostConfigure):
                 peer_host = self.pair_list[next_hop].host
                 peer_port = self.pair_list[next_hop].port
                 data.update({'relay': node_id})
+            data = json.dumps(data)
             enc_data = encryption.do_encrypt(data)
             # print(f"normal data {data}\n encrypted data {enc_data}")
             flag = self.send_messages(peer_host, peer_port, enc_data)
