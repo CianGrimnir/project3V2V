@@ -40,8 +40,8 @@ import threading
 import random
 import sensor_data_generators as sdg
 import broadcast_system as bs
-import json
 from random import randint
+import json
 
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()

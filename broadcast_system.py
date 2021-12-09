@@ -5,6 +5,10 @@ import time
 import geopy.distance
 import encryption
 import struct
+import logging
+
+logging.basicConfig(format='%(asctime)-15s  %(message)s', level=logging.INFO)
+logger = logging.getLogger('v2vnode')
 
 # Multicast address for broadcasting the routing table.
 # If other pi is not receiving the broadcast, increase the TTL
@@ -65,10 +69,10 @@ class BroadcastSystem(HostConfigure):
             node_gps = node_information['location']
             node_coordinate = (node_gps[0], node_gps[1])
             distance = geopy.distance.geodesic(self.gps, node_coordinate).meters
-            # print(self.gps, node_coordinate, distance)
+            logger.debug(self.gps, node_coordinate, distance)
             if distance < 20:
                 self.route_table[node] = {'hop': 1, 'through': 'self'}
-                print(f"ROUTE TABLE UPDATE : {self.route_table}")
+                logger.info(f"ROUTE TABLE UPDATE : {self.route_table}")
                 self.broadcast_route_table()
 
     def receive_route(self):
@@ -82,7 +86,7 @@ class BroadcastSystem(HostConfigure):
         while True:
             table, addr = self.get_route_sock.recvfrom(10240)
             decoded_table = json.loads(table, object_hook=lambda d: {int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()})
-            # print(f"DECODED TABLE from {addr} - {decoded_table}")
+            logger.debug(f"DECODED TABLE from {addr} - {decoded_table}")
             if decoded_table['node'] not in self.route_table.keys():
                 continue
             update_flag = False
@@ -146,11 +150,11 @@ class BroadcastSystem(HostConfigure):
         for node in node_list:
             try:
                 pop = self.route_table.pop(node)
-                print(f"popped route {node} {pop}")
+                logger.info(f"popped route {node} {pop}")
             except KeyError as e:
                 pass
         self.lock.release()
-        print(f"updated route_table {self.route_table}")
+        logger.info(f"updated route_table {self.route_table}")
         self.broadcast_route_table()
 
     def peer_list_updater(self):
@@ -172,12 +176,12 @@ class BroadcastSystem(HostConfigure):
             if not any(flag):
                 self.lock.acquire()
                 self.pair_list[node_id] = HostConfigure(peer_host, peer_port)
-                print(f"index - {node_id} {self.pair_list[node_id]}")
+                logger.info(f"index - {node_id} {self.pair_list[node_id]}")
                 self.route_add(decoded_data)
                 self.lock.release()
-            print("PeerList-Starts----->")
-            print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
-            print("PeerList-Ends---->")
+            logger.info("PeerList-Starts----->")
+            logger.info([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
+            logger.info("PeerList-Ends---->")
 
     def broadcast_information(self):
         """
@@ -208,7 +212,7 @@ class BroadcastSystem(HostConfigure):
             try:
                 recv_data = conn.recv(10240)
                 decrypt_data = encryption.do_decrypt(recv_data)
-                print(f'decrypted data : {decrypt_data} from {addr}')
+                logger.info(f'decrypted data : {decrypt_data} from {addr}')
                 if 'relay' in decrypt_data.keys():
                     record = self.route_table[decrypt_data['relay']]
                     if record['through'] == 'self':
@@ -222,7 +226,7 @@ class BroadcastSystem(HostConfigure):
                 handler(decrypt_data)
             except Exception as e:
                 pass
-                # print(f"error receiving {e} {addr}")
+                # logger.error(f"error receiving {e} {addr}")
             conn.close()
 
     def send_information(self, data):
@@ -251,10 +255,10 @@ class BroadcastSystem(HostConfigure):
                 data.update({'relay': node_id})
             data = json.dumps(data)
             enc_data = encryption.do_encrypt(data)
-            # print(f"normal data {data}\n encrypted data {enc_data}")
+            logger.debug(f"normal data {data}\n encrypted data {enc_data}")
             flag = self.send_messages(peer_host, peer_port, enc_data)
             if not flag and len(self.pair_list) > 1:
-                # print(f"key {peer}")
+                logger.debug(f"key {peer}")
                 delNode.append(peer)
         self.reorder_pairlist(delNode)
         self.route_delete(delNode)
@@ -269,9 +273,9 @@ class BroadcastSystem(HostConfigure):
         self.lock.acquire()
         for node in delete_node:
             pop = self.pair_list.pop(node)
-            print(f"popped index {node} {pop}")
+            logger.info(f"popped index {node} {pop}")
         self.lock.release()
-        print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
+        logger.info([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
 
     def send_messages(self, host, port, data):
         """
@@ -293,7 +297,7 @@ class BroadcastSystem(HostConfigure):
             self.sock.close()
             return flag
         except Exception as e:
-            print(f'{e} {server_address}')
+            logger.debug(f'{e} {server_address}')
             self.sock.close()
             return False
 
