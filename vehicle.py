@@ -4,12 +4,23 @@ import socket
 import threading
 import time
 from flask import Flask, render_template
+import logging
+
+logging.basicConfig(format='%(asctime)-15s  %(message)s', level=logging.INFO)
 
 app = Flask(__name__)
 
 
 @app.route('/vehicle/sensor_controls/speed/<string:value>')
 def speedControl(value):
+    """API to forcefully control the speed sensor.
+
+    Args:
+        value (str): Control string
+
+    Returns:
+        [Str]: A sucess message 
+    """
     vehicle = Vehicle.getInstance()
     if value == "D":
         vehicle.sensorMaster.setSpeedSensor("DECREASE")
@@ -22,12 +33,51 @@ def speedControl(value):
 
 @app.route('/vehicle/sensor_controls/brake/<string:value>')
 def brakeControl(value):
+    """API to forcefully control the brake sensor.
+
+    Args:
+        value (str): Control string
+
+    Returns:
+        [Str]: A sucess message 
+    """
     vehicle = Vehicle.getInstance()
     vehicle.sensorMaster.applyBrake(value)
     return "Signal generated"
 
+@app.route('/vehicle/sensor_controls/hrs/<string:value>')
+def heartRateControl(value):
+    """API to forcefully control the heart rate sensor.
+
+    Args:
+        value (str): Control string
+
+    Returns:
+        [Str]: A sucess message 
+    """
+    vehicle = Vehicle.getInstance()
+    vehicle.sensorMaster.controlHeartRate(value)
+    return "Signal generated"
+
+@app.route('/vehicle/sensor_controls/fuel/<string:value>')
+def fuelLevelControl(value):
+    """API to forcefully control the heart rate sensor.
+
+    Args:
+        value (str): Control string
+
+    Returns:
+        [Str]: A sucess message 
+    """
+    vehicle = Vehicle.getInstance()
+    vehicle.sensorMaster.controlFuelLevel(value)
+    return "Signal generated"
 
 class Vehicle(ctrl.VehicleControls):
+    """
+    Class for the vehicle node extending the control layer for 
+    the vehicle
+    """
     __instance = None
 
     @staticmethod
@@ -43,6 +93,10 @@ class Vehicle(ctrl.VehicleControls):
 
 
 class Infra(ctrl.InfraControls):
+    """
+    Class for the Infra node extending the control layer for 
+    the Infra
+    """
     def __init__(self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
         super().__init__(vehicle_id, host_address, listening_port, sending_port, latitude, longitude)
 
@@ -69,11 +123,11 @@ def main():
     if args.node_type is not None:
         is_infra = args.node_type == 'I' or args.node_type == "i"
     if not is_infra:
-        print("Vehicle-", args.vehicle_id)
+        logging.info("<-----### -{Vehicle-" + args.vehicle_id + "}- ###----->")
         get_vehicle = Vehicle(int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port), latitude, longitude)
         get_vehicle.deploy()
     else:
-        print("isInfra-", args.vehicle_id)
+        logging.info("<-----### -{Infra-" + args.vehicle_id + "}- ###----->")
         get_infra = Infra(int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port), latitude, longitude)
         get_infra.deploy()
     app.run(host='localhost', port=int(args.api_port))

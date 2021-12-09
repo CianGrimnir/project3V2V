@@ -406,13 +406,23 @@ class Sensors:
         sensorObjects.append(self.gps)
 
         return sensorObjects
-
-    def setSpeedSensor(self, value):
-        """Method to explicitly control the speed sensor.
+    
+    def controlHeartRate(self, value):
+        """Method to explicitly control the heart rate sensor.
 
         Args:
             value (str): Control value
         """
+
+    def controlFuelLevel(self, value):
+        """Method to explicitly control the fuel level sensor.
+
+        Args:
+            value (str): Control value
+        """
+
+    def setSpeedSensor(self, value):
+        
         self.s1.FLAG = value
 
 
