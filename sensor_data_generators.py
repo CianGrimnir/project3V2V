@@ -1,5 +1,5 @@
-# Author: Omkar
-# generate sensor values
+# Author: Omkar & Azin
+
 from random import randint
 import time
 from datetime import datetime
@@ -7,6 +7,10 @@ from datetime import datetime
 
 # Azin
 class SensorControls:
+    """
+    Class to hold the control variables across
+    multiple sensors.
+    """
     __instance = None
     FLAG = 'DEFAULT'
     BRAKE_LOCK = False
@@ -14,6 +18,12 @@ class SensorControls:
 
     @staticmethod
     def getInstance():
+        """
+        To get the singleton instance of SensorControls.
+
+        Returns:
+            [SensorControls]: an instance of SensorControls class
+        """
         if SensorControls.__instance is None:
             SensorControls.__instance = SensorControls()
         return SensorControls.__instance
@@ -23,12 +33,25 @@ class SensorControls:
 
 
 class PressureSensor:
+    """
+    Class for pressure sensor.
+    """
 
     def __init__(self):
+        """
+            * Constructor for pressure sensor.
+            * Initialises the initial values of the sensor
+        """
         self.INITIAL_PRESSURE = self.SET_INITIAL_PRESSURE()
         self.PRESSURE = 0
 
     def SET_INITIAL_PRESSURE(self):
+        """
+        Sets the initial value for the senor.
+
+        Returns:
+            [Integer]: returns the initial value of the sensor.
+        """
         randvalue = randint(0, 100)
 
         if randvalue <= 97:  # 97% chance of correct tyre pressure
@@ -47,6 +70,12 @@ class PressureSensor:
         return INITIAL_VALUE
 
     def GET_DATA(self):
+        """
+        To get the sensor readings.
+
+        Returns:
+            [List]: Returns a list with the sensor type and senor value.
+        """
         randvalue2 = randint(0, 10000)
         if randvalue2 <= 9998:  # return same as initial value
             self.PRESSURE = self.INITIAL_PRESSURE
@@ -61,18 +90,33 @@ class PressureSensor:
 
 
 class SpeedSensor:
-
+    """
+    Class for Odometer readings. 
+    """
     def __init__(self):
+        """
+        Constructor for the SpeedSensor class
+        """
         self.INITIAL_SPEED = randint(40, 80)
         self.SPEED = 0
         self.TICKS = 0
 
     def SET_INITIAL_SPEED(self):
+        """
+        Sets the initial sensor speed and returns the value.
+
+        Returns:
+            [Integer]: initial sensor reading
+        """
         self.INITIAL_SPEED = randint(40, 80)
         return self.INITIAL_SPEED
 
     def GET_DATA(self):
+        """Method to get the sensor reading.
 
+        Returns:
+            [List]: Returns a list with sensor type and the sensor readings. 
+        """
         if self.TICKS == 0:
             # Azin
             self.FLAG = SensorControls.getInstance().FLAG
@@ -117,13 +161,22 @@ class SpeedSensor:
 
 
 class LightSensor():
-
+    """Class for LightSensor
+    """
     def __init__(self):
+        """
+        Constructor for Light sensor. Senses the indesity of visible lights.
+        """
         self.LIGHT = "DEFAULT"  # Does not matter, will change depending on time
         self.d1 = datetime(2020, 5, 13, 8, 00, 00)
         self.d2 = datetime(2020, 5, 13, 17, 00, 00)
 
     def GET_DATA(self):
+        """Gets the readings from LightSensor.
+
+        Returns:
+            [List]: Returns a list of with the sensor type and sensor readings.
+        """
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         # print("Current Time =", current_time)
@@ -137,14 +190,22 @@ class LightSensor():
 
 
 class FuelSensor:
+    """Class for Fuel sensor and its associated methods.
+    """
 
     def __init__(self):
+        """Constructor for Fuel Sensor
+        """
         self.INITIAL_FUEL = randint(40, 80)  # % fuel left in tank
         self.FUEL = self.INITIAL_FUEL
         self.TICKS = 0
 
     def GET_DATA(self):
+        """Get the fuel level on the vehicle fuel tank.
 
+        Returns:
+            [List]: Returns a list with the sensor type and the sensor readings. 
+        """
         if self.TICKS % 50 == 0:
             self.FUEL -= 1
 
@@ -160,13 +221,26 @@ class FuelSensor:
 
 
 class ProximitySensor:
+    """Class for the Proximity sensor, which detects proximity variations
+    """
     def __init__(self):
+        """Constructor to the proximity class
+        """
         self.PROXIMITY_LEFT = False
         self.PROXIMITY_RIGHT = False
         self.PROXIMITY_FRONT = False
         self.PROXIMITY_BEHIND = False
 
     def GET_DATA(self, FLAG='LEFT'):
+        """
+        To detect proximity variations.
+
+        Args:
+            FLAG (str, optional): Takes sensor selector as argument. Defaults to 'LEFT'.
+
+        Returns:
+            [List]: Returns a list with sensor type and sensor readings.
+        """
         randvalue = randint(0, 100)
         randvalue1 = randint(0, 100)
         randvalue2 = randint(0, 100)
@@ -197,15 +271,25 @@ class ProximitySensor:
 
 
 class BrakeSensor:
-
+    """Class for the brake sensor. 
+    """
     def __init__(self):
+        """Constructor for brake sensor.
+        """
         self.TICKS = 0
 
     def ApplyBrake(self):
+        """To explicitly apply the brakes.
+        """
         SensorControls.getInstance().BRAKE_APPLIED = True
         self.TICKS = 0
 
     def GET_DATA(self):
+        """Get the readings from brake sensor.
+
+        Returns:
+            [List]: Returns a list with the sensor type and sensor readings.
+        """
         # Azin
         if self.TICKS == 4:
             if not SensorControls.getInstance().BRAKE_LOCK:
@@ -218,11 +302,20 @@ class BrakeSensor:
 
 
 class HeartRateSensor:
-
+    """
+    Class for heartrate monitor sensor.
+    """
     def __init__(self):
+        """constructor for heart rate monitor
+        """
         self.INITIAL_HEART_RATE = self.SET_INITIAL_HEART_RATE()
 
     def SET_INITIAL_HEART_RATE(self):
+        """To set the initial heart rate. 
+
+        Returns:
+            [List]: Returns sensor readings.
+        """
         randvalue = randint(0, 100)
 
         if randvalue <= 97:  # 97% chance of normal heart rate
@@ -241,7 +334,11 @@ class HeartRateSensor:
         return INITIAL_VALUE
 
     def GET_DATA(self):
+        """Method to get the real time heart rate of the passenger.
 
+        Returns:
+            [List]: Returns the sensor type and sensor reading as a list
+        """
         randvalue2 = randint(0, 100)
         if randvalue2 <= 33:  # return same as initial value
             self.HEART_RATE = self.INITIAL_HEART_RATE
@@ -256,8 +353,11 @@ class HeartRateSensor:
 
 
 class GPSSensor:
-
+    """Class for GPS sensor
+    """
     def __init__(self):
+        """Constructor for GPS sensor.
+        """
         self.INITIAL_LAT = 53.3498
         self.INITIAL_LONG = 6.2603
 
@@ -265,18 +365,27 @@ class GPSSensor:
         self.INITIAL_LONG = self.INITIAL_LONG + randint(0, 10) / 10
 
     def GET_DATA(self):
+        """Method to get the readings from the sensor.
+
+        Returns:
+            [List]: Returns a list of the sensor type and the readings from the sensor.
+        """
         self.INITIAL_LAT += randint(0, 10) / 1000
         self.INITIAL_LONG += randint(0, 10) / 1000
 
         return ['GPS', "(" + str(self.INITIAL_LAT) + "," + str(self.INITIAL_LONG) + ")"]
 
 
-# Changing the name to sensors, as it makes more sense
 class Sensors:
 
-    # making the sensors instance variables as it
-    # gives as control over the sensor objects usings the object of Sensors
+    """Master class to hold all the sensors of the vehicle.
+    """
     def getSensors(self):
+        """Method to initialise all the sensor of the vehicle.
+
+        Returns:
+            [List]: List of sensor objects
+        """
         self.p1 = PressureSensor()
         self.s1 = SpeedSensor()
         self.l1 = LightSensor()
@@ -298,12 +407,22 @@ class Sensors:
 
         return sensorObjects
 
-    # Azin
     def setSpeedSensor(self, value):
-        SensorControls.getInstance().FLAG = value
+        """Method to explicitly control the speed sensor.
+
+        Args:
+            value (str): Control value
+        """
+        self.s1.FLAG = value
+
 
     # Azin
     def applyBrake(self, value):
+        """Method to forcefully apply brakes
+
+        Args:
+            value (str): Control value
+        """
         if value == 'A':
             SensorControls.getInstance().BRAKE_APPLIED = True
             SensorControls.getInstance().BRAKE_LOCK = True
@@ -312,14 +431,3 @@ class Sensors:
             SensorControls.getInstance().BRAKE_LOCK = False
 
 
-def GET_SENSOR_DATA():
-    # For Testing
-    S = Sensors()
-    Sobj = S.getSensors()
-
-    for _ in range(100):
-        time.sleep(1)
-        for s in Sobj:
-            print(s.GET_DATA())
-
-# GET_SENSOR_DATA()

@@ -74,6 +74,8 @@ class InfraControls(bs.BroadcastSystem):
             self.send_information({"infraNodeId": str(self.nodeId), "destination": "Gas Station 10021", "dataType": "GPS", "lat": str(
                 53.3498 - randint(0, 10)) + '", "lon" : "' + str(6.2603 - randint(0, 10))})
             logging.info(" Successfully sent GAS STATION info to vehicle[" + data["vehicleId"] + "]")
+        elif data["senorId"] == "HRS" and ( data["senorReading"] < 60 or data["senorReading"] > 100) :
+            self.takeActionOnDanger(data)
 
     # Thread to push periodic updates to all connected nodes
     def periodic_updater(self):
@@ -81,6 +83,15 @@ class InfraControls(bs.BroadcastSystem):
             predictions = ['rainy', 'sunny', 'windy', 'overcast']
             self.send_information({"infraNodeId": str(self.nodeId), "alert": "Weather alert", "senorId": "WTR", "senorReading": random.choices(predictions)[0]})
             time.sleep(10)
+    def takeActionOnDanger(self, data) :
+        logging.info("Received PASSENGER IN DANGER alert from vehicle[" + data["vehicleId"] + "]")
+        self.findNearestHospital(data)
+        logging.info(" Successfully sent Hospital location info to vehicle[" + data["vehicleId"] + "]")
+    
+    def findNearestHospital(self, data) :
+        self.send_information({"infraNodeId": str(self.nodeId), "destination": "Hospital X14S9AS", "dataType": "GPS", "lat": str(
+                55.3584 - randint(0, 10)) + '", "lon" : "' + str(5.2953 - randint(0, 10))})
+    
 
     def deploy(self):
         super().deploy(self.information_processor)
@@ -141,8 +152,9 @@ class VehicleControls(bs.BroadcastSystem):
     def process_HRS_data(self, data):
         self.BP = data[1]
         if data[1] < 60 or data[1] > 100:
+            location = self.sensorMaster.gps.GET_DATA()
             logging.info(f'[{self.vehicle_id}] Broadcasting passenger in danger alert')
-            self.send_information({"vehicleId": str(self.vehicle_id), "alert" : "Low or high heart rate", "senorId" : "HRS", "senorReading" : str(data[1])})
+            self.send_information({"vehicleId": str(self.vehicle_id), "alert" : "Low or high heart rate", "senorId" : "HRS", "senorReading" : str(data[1]), "location" : location[1] })
 
     def process_gps_data(self, data):
         self.GPS = data[1]
