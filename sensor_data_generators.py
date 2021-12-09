@@ -300,7 +300,7 @@ class Sensors:
 
     # Azin
     def setSpeedSensor(self, value):
-        self.s1.FLAG = value
+        SensorControls.getInstance().FLAG = value
 
     # Azin
     def applyBrake(self, value):
