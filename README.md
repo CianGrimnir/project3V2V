@@ -48,10 +48,36 @@ $ Packages to be installed -
     pycryptodome
 ```
 
-# Running Simulation
+# Running/Automating the Simulation
 ```sh
 # For running a vehicle node
 $ python3 vehicle.py --listen_port 33535 --sending_port 34535 --vehicle_id 4 --latitude 53.37527718212891 --longitude -6.285589418171051 --api_port 5001
 # For running a Infra node
 $ python3 vehicle.py --node_type i --listen_port 33555 --sending_port 34555 --vehicle_id 2 --latitude 53.375099182128906 --longitude -6.285900115966797 --api_port 5000 
+```
+
+#### OR 
+
+```sh
+# run screen script to simulate the v2v network.
+$ screen -c simulate_network
+# To kill the screen session
+Press - Ctrl a+d to detach
+$ screen -ls
+    There is a screen on:
+          49949.pts-5.ranair-VirtualBox	(09/12/21 14:58:45)	(Detached)
+    1 Socket in /run/screen/S-ranair.
+# kill the session
+$ screen -X -S 49949.pts-5.ranair-VirtualBox kill
+```
+
+Running the script should create the following view:
+```
+----------------------------------------------
+| Infra node       |                         |
+|-------------------     Vehicle node        |
+| Vehicle node     |-------------------------|
+|------------------|     Vehicle node        |
+| Vehicle node     |                         |
+----------------------------------------------
 ```
