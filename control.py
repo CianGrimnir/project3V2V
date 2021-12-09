@@ -51,8 +51,8 @@ FUEL_LIMIT = 80
 
 
 class InfraControls(bs.BroadcastSystem):
-    def __init__(self, vehicle_id, host_address, listening_port, sending_port):
-        super().__init__(host_address, listening_port, sending_port)
+    def __init__(self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
+        super().__init__(vehicle_id, host_address, listening_port, sending_port, (latitude, longitude))
         self.sensors = """ list of sensors for infra--->  weather, """
         self.nodeId = vehicle_id
 

@@ -43,8 +43,8 @@ class Vehicle(ctrl.VehicleControls):
 
 
 class Infra(ctrl.InfraControls):
-    def __init__(self, vehicle_id, host_address, listening_port, sending_port):
-        super().__init__(vehicle_id, host_address, listening_port, sending_port)
+    def __init__(self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
+        super().__init__(vehicle_id, host_address, listening_port, sending_port, latitude, longitude)
 
     def deploy(self):
         return super().deploy()
@@ -64,17 +64,17 @@ def main():
     hostname = socket.gethostname()
     host = socket.gethostbyname(hostname)
     is_infra = False
+    latitude = float(args.latitude)
+    longitude = float(args.longitude)
     if args.node_type is not None:
         is_infra = args.node_type == 'I' or args.node_type == "i"
     if not is_infra:
         print("Vehicle-", args.vehicle_id)
-        latitude = float(args.latitude)
-        longitude = float(args.longitude)
         get_vehicle = Vehicle(int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port), latitude, longitude)
         get_vehicle.deploy()
     else:
         print("isInfra-", args.vehicle_id)
-        get_infra = Infra(int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port))
+        get_infra = Infra(int(args.vehicle_id), host, int(args.listen_port), int(args.sending_port), latitude, longitude)
         get_infra.deploy()
     app.run(host='localhost', port=int(args.api_port))
 
