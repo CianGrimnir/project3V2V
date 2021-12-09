@@ -1,12 +1,11 @@
 # uses pycryptodome package
 import Crypto.Cipher.AES as AES
 from Crypto.PublicKey import RSA
-import string
-import random
-# from Crypto.Cipher import AES
-import base64
 from Crypto import Random
 import os, hashlib
+import string
+import random
+import base64
 
 BLOCK_SIZE = 16
 padding = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
@@ -14,6 +13,11 @@ unpadding = lambda s: s[:-ord(s[len(s) - 1:])]
 
 
 def do_encrypt(message):
+    """
+    encrypt a message using AES encryption.
+    :param message: message to be encrypted.
+    :return: encrypted message.
+    """
     # IV = hashlib.md5(os.urandom(128)).hexdigest()[:16]
     IV = Random.new().read(AES.block_size)
     cipher = AES.new('abcd1234efgh5678'.encode("utf8"), AES.MODE_CBC, IV)
@@ -25,6 +29,11 @@ def do_encrypt(message):
 
 
 def do_decrypt(ciphertext):
+    """
+    Decrypt the received message using AES encryption.
+    :param ciphertext: encrypted message to decrypt.
+    :return: decrypted message.
+    """
     enc = base64.b64decode(ciphertext)
     iv = enc[:16]
     # IV = hashlib.md5(os.urandom(128)).hexdigest()[:16]

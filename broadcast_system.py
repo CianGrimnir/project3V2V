@@ -6,6 +6,7 @@ import geopy.distance
 import encryption
 import struct
 
+# Multicast address for broadcasting the routing table.
 # If other pi is not receiving the broadcast, increase the TTL
 MCAST_TTL = 1
 MCAST_GRP = '224.1.1.1'
@@ -13,13 +14,33 @@ MCAST_PORT = 34599
 
 
 class HostConfigure:
-    def __init__(self, host_address, port):
+    """
+    This class acts as the shell for storing peer details
+    """
+
+    def __init__(self, host_address: str, port: int):
+        """
+        Initializer for the shell class.
+        :param host_address: ip address of the host.
+        :param port: port number of the host.
+        """
         self.host = host_address
         self.port = port
 
 
 class BroadcastSystem(HostConfigure):
-    def __init__(self, vehicle_id, host_address, port, sending_port, gps=None):
+    """
+    This class acts as the communication system/router for the Vehicle or Infra.
+    """
+    def __init__(self, vehicle_id: int, host_address: str, port: int, sending_port: int, gps: tuple = None):
+        """
+        Initializer for the communication system.
+        :param vehicle_id: id of the vehicle/infra node.
+        :param host_address: ip address of the node
+        :param port: listening port of the node.
+        :param sending_port: port to be used while sending a data.
+        :param gps: GPS coordinates of the node.
+        """
         super(BroadcastSystem, self).__init__(host_address, port)
         self.vehicle_id = vehicle_id
         self.pair_list = {}
@@ -34,7 +55,11 @@ class BroadcastSystem(HostConfigure):
         self.get_route_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.route_table = {}
 
-    def route_add(self, node_information):
+    def route_add(self, node_information: dict):
+        """
+        Add new entry to the routing table.
+        :param node_information: remote node information received from broadcast.
+        """
         node = node_information['node']
         if node not in self.route_table.keys():
             node_gps = node_information['location']
@@ -47,6 +72,9 @@ class BroadcastSystem(HostConfigure):
                 self.broadcast_route_table()
 
     def receive_route(self):
+        """
+        Receive route table from the neighbouring nodes.
+        """
         self.get_route_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.get_route_sock.bind(('', MCAST_PORT))
         mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
@@ -74,7 +102,12 @@ class BroadcastSystem(HostConfigure):
             if update_flag:
                 self.broadcast_route_table()
 
-    def check_null_route(self, remote_route_table):
+    def check_null_route(self, remote_route_table: dict):
+        """
+        Check for null/old non-existent routes in the neighbours routing table.
+        If null route exist, remove the entry from the self routing table.
+        :param remote_route_table: route table of the neighbouring node.
+        """
         remove_route = []
         route_through_node = [i for i in self.route_table if self.route_table[i]['through'] == remote_route_table['node']]
         nodes = list(remote_route_table['route'].keys())
@@ -83,18 +116,30 @@ class BroadcastSystem(HostConfigure):
                 remove_route.append(node)
         self.route_delete(remove_route)
 
-    def get_node_id(self, remote_addr):
+    def get_node_id(self, remote_addr: tuple):
+        """
+        Return the node id from remote ip address and port number.
+        :param remote_addr: ip address and port number of the remote node.
+        :return: int: id of the resulting node.
+        """
         for node in list(self.pair_list):
             if remote_addr[0] == self.pair_list[node].host and int(remote_addr[1]) == self.pair_list[node].port:
                 return node
 
     def broadcast_route_table(self):
+        """
+        Broadcast route table to neighbouring nodes.
+        """
         self.route_sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MCAST_TTL)
         send_route_db = {'node': self.vehicle_id, 'route': self.route_table}
         route_table_json = json.dumps(send_route_db)
-        self.route_sock.sendto(route_table_json.encode('utf-8'), (MCAST_GRP,MCAST_PORT))
+        self.route_sock.sendto(route_table_json.encode('utf-8'), (MCAST_GRP, MCAST_PORT))
 
     def route_delete(self, node_list):
+        """
+        Remove unreachable routes from the route table.
+        :param node_list: nodes to be removed from the route table.
+        """
         if not node_list:
             return
         self.lock.acquire()
@@ -109,6 +154,10 @@ class BroadcastSystem(HostConfigure):
         self.broadcast_route_table()
 
     def peer_list_updater(self):
+        """
+        Discover neighbouring nodes using broadcast system and update the route table
+        and pair_list - maintaining the neighbours' node information.
+        """
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -131,6 +180,9 @@ class BroadcastSystem(HostConfigure):
             print("PeerList-Ends---->")
 
     def broadcast_information(self):
+        """
+        Broadcast self information to the neighbouring nodes.
+        """
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # TODO: add custom message for infra (without gps data), can use the hasattr method
@@ -141,6 +193,10 @@ class BroadcastSystem(HostConfigure):
             time.sleep(5)
 
     def information_listener(self, handler):
+        """
+        Receive sensor information from neighbouring nodes.
+        :param handler:  handler function to process the received readings.
+        """
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((self.host, self.port))
@@ -170,6 +226,10 @@ class BroadcastSystem(HostConfigure):
             conn.close()
 
     def send_information(self, data):
+        """
+        Send sensor readings to all neighbouring nodes using pair_list and route table.
+        :param data: sensor readings.
+        """
         time.sleep(2)
         delNode = []
         for peer in list(self.pair_list):
@@ -202,6 +262,10 @@ class BroadcastSystem(HostConfigure):
         time.sleep(7)
 
     def reorder_pairlist(self, delete_node):
+        """
+        Remove inactive nodes from pair_list.
+        :param delete_node: inactive nodes.
+        """
         self.lock.acquire()
         for node in delete_node:
             pop = self.pair_list.pop(node)
@@ -210,6 +274,13 @@ class BroadcastSystem(HostConfigure):
         print([(self.pair_list[i].host, self.pair_list[i].port) for i in self.pair_list])
 
     def send_messages(self, host, port, data):
+        """
+        Send encrypted data to mentioned host and pair.
+        :param host: ip address of the neighbouring node.
+        :param port: port number of the neighbouring node.
+        :param data: encrypted data to send.
+        :return: status code of the message sent.
+        """
         server_address = (host, port)
         flag = True
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -227,6 +298,10 @@ class BroadcastSystem(HostConfigure):
             return False
 
     def deploy(self, handler):
+        """
+        deploy the communication modules.
+        :param handler: handler method to process received data.
+        """
         server_thread = threading.Thread(target=self.broadcast_information)
         peer_thread = threading.Thread(target=self.peer_list_updater)
         route_thread = threading.Thread(target=self.receive_route)
