@@ -1,38 +1,4 @@
-"""
-Control layer.
-constantly looks for sensor data,
-According to the sensor data, then raise proper alerts
 
-sensors used :
-1. Speed gauge 
-2. Tyre pressure
-3. Steering wheel change
-4. Proximity/ radar
-5. GPS
-6. Heartrate monitor
-7. Brake sensor
-8. Fuel gauge
-
-if tyre pressure is low :
-    then alert all peers --- I may cause an accident
-if proximity sensor/radar data :
-    then alert the neighbours --- you are too close to me
-if speed increases :
-    then alert the neighbours --- I am speeding up.
-if speed decreases :
-    then alert the neighbours --- I am slowing down
-if steering wheel change : 
-    then alert the neighbours ---- I am changing my direction
-if GPS down or unavailable :
-    then alert the neighbours
-if Heartrate :
-    then alert the neighbours --- Passenger in danger
-if brake applied :
-    then alert the neighbours --- Sudden brake
-if .....
-
-"""
-# Azin
 import logging
 import argparse
 import time
@@ -43,6 +9,7 @@ import broadcast_system as bs
 import json
 from random import randint
 
+
 logging.basicConfig(level=logging.INFO)
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--nodeid', help='a number', required=False)
@@ -51,19 +18,37 @@ FUEL_LIMIT = 80
 
 
 class InfraControls(bs.BroadcastSystem):
+    """
+    The control layer for the infrasture node has been 
+    abstracted in this class. The class extends the super class
+    BroadcastSystems which is an abstraction for the data layer. 
+    This class encapsulates the behaviour and the logics for the
+    smooth functioning of the infra.
+
+    Super Class:
+        bs (BroadcastSystem): Abstraction for the data layer.
+    """
     def __init__(self, vehicle_id, host_address, listening_port, sending_port, latitude, longitude):
+        """
+        Constructor
+        """
         super().__init__(vehicle_id, host_address, listening_port, sending_port, (latitude, longitude))
         self.sensors = """ list of sensors for infra--->  weather, """
         self.nodeId = vehicle_id
 
     def runInfra(self):
+        """Starts the periodic updater thread
+        """
         threading.Thread(target=self.periodic_updater).start()
 
-    # Whenever a new data is received on this node,
-    # the control comes here.
     def information_processor(self, data):
-        """Wat to do with the received data ? """
-        print("On infra--->[" + data + "]")
+        """
+        Process the date received from the data layer.
+
+        Args:
+            data (json string): Information recieved from the data layer.
+        """
+        logging.info("On infra--->[" + data + "]")
         data = json.loads(data)
         if data["senorId"] == "LT":
             logging.info("Received LOW LIGHTS alert from vehicle[" + data["vehicleId"] + "]")
@@ -79,21 +64,39 @@ class InfraControls(bs.BroadcastSystem):
 
     # Thread to push periodic updates to all connected nodes
     def periodic_updater(self):
+        """
+        Thread which periodically updates the connected nodes with 
+        necessary updates and information.
+        """
         while True:
             predictions = ['rainy', 'sunny', 'windy', 'overcast']
             self.send_information({"infraNodeId": str(self.nodeId), "alert": "Weather alert", "senorId": "WTR", "senorReading": random.choices(predictions)[0]})
             time.sleep(10)
     def takeActionOnDanger(self, data) :
+        """Decides the action to be taken on receiving 
+        a passenger in danger alert.
+
+        Args:
+            data (json): Data recieved from the data layer
+        """
         logging.info("Received PASSENGER IN DANGER alert from vehicle[" + data["vehicleId"] + "]")
         self.findNearestHospital(data)
         logging.info(" Successfully sent Hospital location info to vehicle[" + data["vehicleId"] + "]")
     
     def findNearestHospital(self, data) :
+        """Finds the nearest hospital to the a specific geographic location.
+
+        Args:
+            data (json): Data received from the data layer.
+        """
         self.send_information({"infraNodeId": str(self.nodeId), "destination": "Hospital X14S9AS", "dataType": "GPS", "lat": str(
                 55.3584 - randint(0, 10)) + '", "lon" : "' + str(5.2953 - randint(0, 10))})
     
 
     def deploy(self):
+        """
+        Starts the infra threads
+        """
         super().deploy(self.information_processor)
         self.runInfra()
 
@@ -204,10 +207,3 @@ class VehicleControls(bs.BroadcastSystem):
         self.get_vehicle_runner_thread().start()
         threading.Thread(target=self.stimulate_vehicle_run, args=( )).start()
 
-# runner.start()
-
-# v = VehicleControls(vehicle_id)
-
-# runner = v.get_vehicle_runner_thread()
-
-# runner.start()
