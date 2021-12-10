@@ -81,3 +81,32 @@ Running the script should create the following view:
 | Vehicle node     |                         |
 ----------------------------------------------
 ```
+
+
+# APIs - For manually controlling the vehicle.
+```sh
+# API to increase the speed.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/speed/I
+
+# API to decrease the speed.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/speed/D
+
+# API to apply brakes.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/brake/A
+
+# API to release brakes.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/brake/R
+
+# API to increase blood pressure of the passenger.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/hrs/I
+
+# API to decrease blood pressure of the passenger.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/hrs/D
+
+# API to increase fuel level.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/fuel/I
+
+# API to decrease fuel level.
+$ curl -I http://localhost:5000/vehicle/sensor_controls/fuel/D
+
+```
