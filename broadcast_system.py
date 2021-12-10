@@ -1,3 +1,5 @@
+# Authors: Rakesh, Azin & Omkar  
+
 import json
 import socket
 import threading
@@ -7,6 +9,7 @@ import encryption
 import struct
 import logging
 
+#Rakesh
 logging.basicConfig(format='%(asctime)-15s  %(message)s', level=logging.INFO)
 logger = logging.getLogger('v2vnode')
 
@@ -15,7 +18,6 @@ logger = logging.getLogger('v2vnode')
 MCAST_TTL = 1
 MCAST_GRP = '224.1.1.1'
 MCAST_PORT = 34599
-
 
 class HostConfigure:
     """
@@ -53,7 +55,6 @@ class BroadcastSystem(HostConfigure):
         self.listening_port = port
         self.sending_port = sending_port
         self.gps = gps
-        # TODO: replace above code with the self.GPS defined in the control.py
         self.sock = None
         self.route_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.get_route_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -310,13 +311,10 @@ class BroadcastSystem(HostConfigure):
         peer_thread = threading.Thread(target=self.peer_list_updater)
         route_thread = threading.Thread(target=self.receive_route)
         info_thread = threading.Thread(target=self.information_listener, args=(handler,))
-        # sensor_thread = threading.Thread(target=self.send_information, args=( sending_port,))
 
         server_thread.start()
         peer_thread.start()
-        # TODO: do we require this part for infra as well? If yes, we have to update the infra class with GPS data
+
         route_thread.start()
         time.sleep(15)
         info_thread.start()
-
-        # sensor_thread.start()

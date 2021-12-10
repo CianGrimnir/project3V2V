@@ -1,3 +1,5 @@
+# Authors: Rakesh, Azin & Omkar  
+
 # uses pycryptodome package
 import Crypto.Cipher.AES as AES
 from Crypto.PublicKey import RSA

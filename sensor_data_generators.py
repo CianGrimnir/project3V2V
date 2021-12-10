@@ -1,11 +1,11 @@
-# Author: Omkar & Azin
+# Authors: Omkar, Azin & Rakesh
 
 from random import randint
 import time
 from datetime import datetime
 
 
-# Azin
+
 class SensorControls:
     """
     Class to hold the control variables across
@@ -29,7 +29,7 @@ class SensorControls:
         return SensorControls.__instance
 
 
-# Azin
+
 
 
 class PressureSensor:
@@ -118,12 +118,12 @@ class SpeedSensor:
             [List]: Returns a list with sensor type and the sensor readings. 
         """
         if self.TICKS == 0:
-            # Azin
+            
             self.FLAG = SensorControls.getInstance().FLAG
 
         randvalue2 = randint(0, 100)
 
-        # Azin
+        
         if SensorControls.getInstance().BRAKE_APPLIED:
             self.FLAG = 'DECREASE'
 
@@ -290,7 +290,7 @@ class BrakeSensor:
         Returns:
             [List]: Returns a list with the sensor type and sensor readings.
         """
-        # Azin
+        
         if self.TICKS == 4:
             if not SensorControls.getInstance().BRAKE_LOCK:
                 SensorControls.getInstance().BRAKE_APPLIED = not SensorControls.getInstance().BRAKE_APPLIED
@@ -426,7 +426,7 @@ class Sensors:
         self.s1.FLAG = value
 
 
-    # Azin
+    
     def applyBrake(self, value):
         """Method to forcefully apply brakes
 
